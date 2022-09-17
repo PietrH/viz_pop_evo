@@ -6,6 +6,9 @@
 library(data.table) # CRAN v1.14.2
 library(dplyr)      # CRAN v1.0.7
 library(popbio)     # CRAN v2.7
+library(ggplot2)    # CRAN v3.3.5
+
+# major purrr dependency, can reduce data.table dependency
 
 # load input data ---------------------------------------------------------
 
@@ -132,7 +135,7 @@ build_matrix_row <- function(input_df, selected_lifestage) {
   }
 }
 
-# create matrix
+                    # create matrix
 c(
   input_flemish_boar$reproduction,
   purrr::map(lifestages[1:length(lifestages) - 1],
@@ -173,6 +176,78 @@ deer_matrix <-
 
 # iterations is the number of "years" assuming that every generation only takes
 # one year
-pop.projection(deer_matrix,
+pop_evolution <- 
+  pop.projection(deer_matrix,
                n = rep(100,nrow(deer_matrix)),
                iterations = 10)
+
+
+# visualisation -----------------------------------------------------------
+
+
+pop_evolution_stages <- 
+  pop_evolution %>%
+  purrr::pluck("stage.vectors") %>%
+  as_tibble(rownames = "lifestage") %>%
+  tidyr::pivot_longer(cols = where(is.double),
+                      names_to = "iteration") %>% 
+  mutate(years = as.integer(iteration))
+
+ggplot(pop_evolution_stages) +
+  aes(x = years, y = value, colour = lifestage) +
+  geom_line(size = 1.25) +
+  scale_color_hue(direction = 1) +
+  theme_minimal()
+
+
+# visualisation as a function ---------------------------------------------
+
+
+viz_pop_evo <-
+  function(input_df,
+           selected_species,
+           selected_locality,
+           n = NULL,
+           years = 10) {
+    pop_matrix <-
+      create_population_matrix(input_df,
+                               selected_species,
+                               selected_locality)
+    
+    # if no n is provided, assume 100 individuals per lifestage
+    if (is.null(n)) {
+      n <- rep(100, nrow(pop_matrix))
+    }
+    
+    pop_evolution <-
+      pop.projection(pop_matrix,
+                     n = n,
+                     iterations = years)
+    
+    pop_evolution_stages <-
+      pop_evolution %>%
+      purrr::pluck("stage.vectors") %>%
+      as_tibble(rownames = "lifestage") %>%
+      tidyr::pivot_longer(cols = where(is.double),
+                          names_to = "iteration") %>%
+      mutate(years = as.integer(iteration),
+             n = value)
+    
+    # TODO When there are colours defined, do scale_color_manual, otherwise just
+    # use black
+    
+    ggplot2::ggplot(pop_evolution_stages) +
+      ggplot2::aes(x = years, y = n, colour = lifestage) +
+      ggplot2::geom_line(size = 1.25) +
+      # ggplot2::scale_color_hue(direction = 1) +
+      scale_color_manual(
+        values = c(adult = "#C55B53",
+                   juvenile = "#30D721",
+                   senescent = "#1E80AA",
+                   subadult = "#CE2E91")
+      ) +
+      ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
+      ggplot2::theme_minimal()
+    
+  }
+
