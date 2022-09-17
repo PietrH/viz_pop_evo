@@ -1,0 +1,11 @@
+locality;species;lifestage;reproduction;survival
+Flanders;wild boar;juvenile;0.59;0.52
+Flanders;wild boar;subadult;1.76;0.6
+Flanders;wild boar;adult;2.29;0.71
+Sweden;wild boar;juvenile;0.13;0.25
+Sweden;wild boar;subadult;0.56;0.31
+Sweden;wild boar;adult;1.64;0.58
+Wallonia;deer;juvenile;0;0.45
+Wallonia;deer;subadult;0;0.7
+Wallonia;deer;adult;0.95;0.9
+Wallonia;deer;senescent;0.7;0.5
