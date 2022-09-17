@@ -179,7 +179,7 @@ deer_matrix <-
 pop_evolution <- 
   pop.projection(deer_matrix,
                n = rep(100,nrow(deer_matrix)),
-               iterations = 10)
+               iterations = 10+1)
 
 
 # visualisation -----------------------------------------------------------
@@ -198,15 +198,19 @@ annotation <-
     label = names(pop_evolution$stable.stage),
     y = pull(filter(pop_evolution_stages,years == max(years)),value),
     # x = years,
-    x = rep(10, 4)
+    x = rep(11, 4)
   )
 
 p <- ggplot(pop_evolution_stages) +
   aes(x = years, y = value, colour = lifestage) +
   geom_line(size = 1.25) +
+  # geom_line(size = 1.25, aes(linetype = lifestage)) +
   scale_color_hue(direction = 1) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom")
   
+
+# NOTE possibly better off using ggplot2::annotation_custom
 p +
   geom_label(data = annotation,
              ggplot2::aes(x = x, y = y, label = label),
@@ -214,6 +218,18 @@ p +
   # coord_cartesian(xlim = c(0,years), clip = "off") +
   coord_cartesian(xlim = c(0,10), clip = "on")
 
+p + geom_label(data = annotation, ggplot2::aes(x = 10, y = y, label = label),
+              inherit.aes = FALSE, hjust = 0.5, nudge_x = 1) +
+  coord_cartesian(xlim = c(0,10), clip = "on") +
+  theme(plot.margin = unit(c(0,11,0,0),"char"))
+        # theme(plot.margin = unit(c(0,0,0,max(nchar(lifestages))+2),"char")
+
+# example with just annotate
+p + annotate("text", x=10, y=annotation$y, label = annotation$label)
+
+# putting label texts on top of the plots 
+p + geom_label(data = annotation, ggplot2::aes(x = 7, y =  pull(filter(pop_evolution_stages,years == 7),value), label = label),
+               inherit.aes = FALSE, hjust = 0, position = position_dodge(width = 3))
 # visualisation as a function ---------------------------------------------
 
 # small function to turn known r color strings into hex codes
@@ -279,4 +295,16 @@ viz_pop_evo <-
       ggplot2::theme_minimal()
     
   }
+
+# from https://stackoverflow.com/a/38758257
+check_miss_arg <- function(a,b,c) {
+  defined <- ls()
+  passed <- names(as.list(match.call())[-1])
+  
+  if (any(!defined %in% passed)) {
+    stop(paste("You must provide", paste(setdiff(defined, passed), collapse=", ")))
+  }
+  message(paste(a,b,c))
+}
+
 
