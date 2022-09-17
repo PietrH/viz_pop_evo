@@ -150,12 +150,29 @@ create_population_matrix <- function(input_df,selected_species,selected_locality
   lifestages <- pull(species_dynamics,lifestage)
 
 # head(lifestages,-1)
-
+# force class to numeric (not integer) to allow for 
   c(pull(species_dynamics,reproduction),
     purrr::map(lifestages[1:length(lifestages) - 1],
                build_matrix_row,
                input_df = species_dynamics)) %>%
     purrr::flatten() %>%
+    as.numeric() %>% 
     matrix2(lifestages)
   
 }
+
+
+# can we calculate population evolution -----------------------------------
+
+deer_matrix <-
+  create_population_matrix(input,
+                           selected_species = "deer",
+                           selected_locality = "Wallonia")
+
+# n is number of animals per stage
+
+# iterations is the number of "years" assuming that every generation only takes
+# one year
+pop.projection(deer_matrix,
+               n = rep(100,nrow(deer_matrix)),
+               iterations = 10)
