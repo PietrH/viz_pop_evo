@@ -1,6 +1,14 @@
+# From input csv, create a population matrix, calculates population demoraphic
+# evolution, and returns a line graph
+
+# load libraries ----------------------------------------------------------
 
 library(data.table)
 library(dplyr)
+
+
+# load input data ---------------------------------------------------------
+
 
 input <- 
   tibble(
@@ -12,8 +20,16 @@ input <-
   ) %>% 
   setDT()
 
-data.table::uniqueN(input$lifestage)
+# check number of different possible lifestages
+# data.table::uniqueN(input$lifestage)
+
+## write csv out -----------------------------------------------------------
+
 data.table::fwrite(input,file.path("data","pop_dyn.csv"),sep = ";")
+
+
+# build population matrix -------------------------------------------------
+
 
 # filter(input, species == "wild boar", locality == "Flanders") %>% 
 #   tidyr::pivot_wider(names_from = lifestage,values_from = reproduction)
