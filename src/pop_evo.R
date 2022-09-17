@@ -234,9 +234,10 @@ p + geom_label(data = annotation, ggplot2::aes(x = 7, y =  pull(filter(pop_evolu
 
 # small function to turn known r color strings into hex codes
 colstring_to_hex <-
-  function(colour_string) {
-    rgb(t(col2rgb(colour_string)), max = 255)
+  function(...) {
+    rgb(t(col2rgb(c(...))), max = 255)
   }
+
 
 # Main function, build the population matrix, calculate the population
 # evolution, and plot it
@@ -296,6 +297,9 @@ viz_pop_evo <-
     
   }
 
+# How to check for missing arguments in a function call, could also use
+# rlang::missing, but it's not a mature function, and this is base
+
 # from https://stackoverflow.com/a/38758257
 check_miss_arg <- function(a,b,c) {
   defined <- ls()
@@ -307,4 +311,50 @@ check_miss_arg <- function(a,b,c) {
   message(paste(a,b,c))
 }
 
+
+# handle number of colours should match number of lifestages, but still be black
+# stock
+return_cols <- function(input_df,
+                        selected_species,
+                        selected_locality,
+                        colours = NULL) {
+  species_dynamics <-
+    dplyr::filter(input_df,
+                  species == selected_species,
+                  locality == selected_locality)
+  number_of_lifestages <- length(unique(species_dynamics$lifestage))
+  
+  if (is.null(colours)) {
+    warning("No provided colours, defaulting to black")
+    colours <- rep("#000000", number_of_lifestages)
+  } else {
+    if (length(colours) != number_of_lifestages) {
+      warning(
+        glue::glue(
+          "Provided different number of colours: {length(colours)} ",
+          "then the number of lifestages: {number_of_lifestages}"
+        )
+      )
+    }
+  }
+  
+  return(colours)
+}
+
+# function to check if the input data has all the neccesairy columns
+
+check_input_data_for_columns <- function(input_df){
+  required <- c("locality","species","lifestage","reproduction","survival")
+  missing_columns <- required[!required %in% names(input_df)]
+  assertthat::assert_that(length(missing_columns) == 0,
+                          # msg = glue::glue("{paste(missing_columns,collapse = ', ')} ",
+                          #                  "{ifelse(length(missing_columns)>1,'are','is')}",
+                          #                  " missing from {deparse(substitute(input_df))}"))
+                          msg = glue::glue("{deparse(substitute(input_df))}",
+                                           " is missing ",
+                                           "{ifelse(length(missing_columns)>1,'some columns','a column')}",
+                                           ": {paste(missing_columns,collapse = ', ')}")
+  )
+  return(glimpse(input_df))
+}
 
