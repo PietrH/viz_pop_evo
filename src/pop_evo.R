@@ -202,13 +202,21 @@ ggplot(pop_evolution_stages) +
 
 # visualisation as a function ---------------------------------------------
 
+# small function to turn known r color strings into hex codes
+colstring_to_hex <-
+  function(colour_string) {
+    rgb(t(col2rgb(colour_string)), max = 255)
+  }
 
+# Main function, build the population matrix, calculate the population
+# evolution, and plot it
 viz_pop_evo <-
   function(input_df,
            selected_species,
            selected_locality,
            n = NULL,
-           years = 10) {
+           years = 10,
+           colours = NULL) {
     pop_matrix <-
       create_population_matrix(input_df,
                                selected_species,
@@ -217,6 +225,10 @@ viz_pop_evo <-
     # if no n is provided, assume 100 individuals per lifestage
     if (is.null(n)) {
       n <- rep(100, nrow(pop_matrix))
+    }
+    
+    if (is.null(colours)) {
+      colours <- rep("#000000",nrow(pop_matrix))
     }
     
     pop_evolution <-
@@ -236,16 +248,17 @@ viz_pop_evo <-
     # TODO When there are colours defined, do scale_color_manual, otherwise just
     # use black
     
+    # TODO it's easier to read if we store the possible lifestages in a vector
+    # outside of the model, the intermediary functions also fetch it twice, so
+    # we can avoid repetition this way
+    
     ggplot2::ggplot(pop_evolution_stages) +
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
       # ggplot2::scale_color_hue(direction = 1) +
-      scale_color_manual(
-        values = c(adult = "#C55B53",
-                   juvenile = "#30D721",
-                   senescent = "#1E80AA",
-                   subadult = "#CE2E91")
-      ) +
+      ggplot2::scale_color_manual(values = 
+                           purrr::set_names(colours,
+                                            names(pop_evolution$stable.stage))) +
       ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
       ggplot2::theme_minimal()
     
