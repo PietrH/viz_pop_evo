@@ -136,13 +136,13 @@ build_matrix_row <- function(input_df, selected_lifestage) {
 }
 
                     # create matrix
-c(
-  input_flemish_boar$reproduction,
-  purrr::map(lifestages[1:length(lifestages) - 1],
-             build_matrix_row,
-             input_df = input_flemish_boar)) %>%
-  purrr::flatten() %>%
-  matrix2(lifestages)
+# c(
+#   input_flemish_boar$reproduction,
+#   purrr::map(lifestages[1:length(lifestages) - 1],
+#              build_matrix_row,
+#              input_df = input_flemish_boar)) %>%
+#   purrr::flatten() %>%
+#   matrix2(lifestages)
 
 # function to create the whole matrix in a single go
 
@@ -193,12 +193,26 @@ pop_evolution_stages <-
                       names_to = "iteration") %>% 
   mutate(years = as.integer(iteration))
 
-ggplot(pop_evolution_stages) +
+annotation <-
+  data.frame(
+    label = names(pop_evolution$stable.stage),
+    y = pull(filter(pop_evolution_stages,years == max(years)),value),
+    # x = years,
+    x = rep(10, 4)
+  )
+
+p <- ggplot(pop_evolution_stages) +
   aes(x = years, y = value, colour = lifestage) +
   geom_line(size = 1.25) +
   scale_color_hue(direction = 1) +
   theme_minimal()
-
+  
+p +
+  geom_label(data = annotation,
+             ggplot2::aes(x = x, y = y, label = label),
+             inherit.aes = FALSE) +
+  # coord_cartesian(xlim = c(0,years), clip = "off") +
+  coord_cartesian(xlim = c(0,10), clip = "on")
 
 # visualisation as a function ---------------------------------------------
 
@@ -231,10 +245,12 @@ viz_pop_evo <-
       colours <- rep("#000000",nrow(pop_matrix))
     }
     
+    # iterations starts counting from the starting position, so 10 iterations
+    # would give you frames 0 to 9
     pop_evolution <-
       pop.projection(pop_matrix,
                      n = n,
-                     iterations = years)
+                     iterations = years +1)
     
     pop_evolution_stages <-
       pop_evolution %>%
