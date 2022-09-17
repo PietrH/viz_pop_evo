@@ -13,6 +13,7 @@ input <-
   setDT()
 
 data.table::uniqueN(input$lifestage)
+data.table::fwrite(input,file.path("data","pop_dyn.csv"),sep = ";")
 
 # filter(input, species == "wild boar", locality == "Flanders") %>% 
 #   tidyr::pivot_wider(names_from = lifestage,values_from = reproduction)
