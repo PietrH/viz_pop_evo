@@ -324,6 +324,7 @@ return_cols <- function(input_df,
                   locality == selected_locality)
   number_of_lifestages <- length(unique(species_dynamics$lifestage))
   
+  # TODO need to do this for n as well, wrap into function
   if (is.null(colours)) {
     warning("No provided colours, defaulting to black")
     colours <- rep("#000000", number_of_lifestages)
