@@ -64,8 +64,14 @@ lifestages <- input_flemish_boar %>%
 
 # function to fetch the survival parameter for a specific lifestage (when
 # already filtered down on locality)
-fetch_survival <- function(selected_lifestage) {
-  input_flemish_boar %>%
+# fetch_survival <- function(selected_lifestage) {
+#   input_flemish_boar %>%
+#     filter(lifestage == selected_lifestage) %>%
+#     pull(survival)
+# }
+
+fetch_survival <- function(input_df,selected_lifestage) {
+  input_df %>%
     filter(lifestage == selected_lifestage) %>%
     pull(survival)
 }
@@ -103,26 +109,53 @@ matrix2(
 
 # function to create the second to nth row of the projection/population matrix,
 # first row is fertility
-build_matrix_row <- function(selected_lifestage) {
-  if (grep(selected_lifestage, lifestages) + 1 == length(lifestages)) {
+build_matrix_row <- function(input_df, selected_lifestage) {
+  lifestages <- pull(input_df,lifestage)
+  
+  # using seq_along instead of grep to force exact string matching, fixed = TRUE
+  selected_lifestage_index <- 
+    seq_along(lifestages)[lifestages == selected_lifestage]
+  
+  # is not cutting it
+  if (selected_lifestage_index + 1 == length(lifestages)) {
     c(
-      rep(0, grep(selected_lifestage, lifestages) - 1),
-      fetch_survival(selected_lifestage),
-      fetch_survival(lifestages[grep(selected_lifestage, lifestages) + 1])
+      rep(0, selected_lifestage_index - 1),
+      fetch_survival(input_df, selected_lifestage),
+      fetch_survival(input_df, lifestages[selected_lifestage_index + 1])
     )
   } else {
     c(
       rep(0, grep(selected_lifestage, lifestages) - 1),
-      fetch_survival(selected_lifestage),
+      fetch_survival(input_df, selected_lifestage),
       rep(0, length(lifestages) - grep(selected_lifestage, lifestages))
     )
   }
 }
 
-                    # create matrix
+# create matrix
 c(
   input_flemish_boar$reproduction,
-  purrr::map(lifestages[1:length(lifestages) - 1], build_matrix_row)
-) %>%
+  purrr::map(lifestages[1:length(lifestages) - 1],
+             build_matrix_row,
+             input_df = input_flemish_boar)) %>%
   purrr::flatten() %>%
   matrix2(lifestages)
+
+# function to create the whole matrix in a single go
+
+create_population_matrix <- function(input_df,selected_species,selected_locality){
+  
+  species_dynamics <-
+    dplyr::filter(input_df,species == selected_species,locality == selected_locality)
+  lifestages <- pull(species_dynamics,lifestage)
+
+# head(lifestages,-1)
+
+  c(pull(species_dynamics,reproduction),
+    purrr::map(lifestages[1:length(lifestages) - 1],
+               build_matrix_row,
+               input_df = species_dynamics)) %>%
+    purrr::flatten() %>%
+    matrix2(lifestages)
+  
+}
