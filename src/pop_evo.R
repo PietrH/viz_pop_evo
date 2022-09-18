@@ -42,10 +42,10 @@ data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
 
 # let's try flemish boars first
 
-input_flemish_boar <- filter(input, species == "wild boar", locality == "Flanders")
-
-lifestages <- input_flemish_boar %>%
-  pull(lifestage)
+# input_flemish_boar <- filter(input, species == "wild boar", locality == "Flanders")
+# 
+# lifestages <- input_flemish_boar %>%
+#   pull(lifestage)
 # 
 # # fertilities always in first row
 # input_flemish_boar %>%
@@ -73,15 +73,17 @@ lifestages <- input_flemish_boar %>%
 #     pull(survival)
 # }
 
+# function to fetch a survival value for a specific lifestage from a
+# dynamic_species intermediair dataframe
 fetch_survival <- function(input_df,selected_lifestage) {
   input_df %>%
     filter(lifestage == selected_lifestage) %>%
     pull(survival)
 }
-# 
+
+
 # out <- pop_df
-# 
-# 
+
 # pop_df %>%
 #   add_row(juvenile = fetch_survival("juvenile")) %>%
 #   add_row(subadult = fetch_survival("subadult")) %>%
@@ -99,14 +101,14 @@ fetch_survival <- function(input_df,selected_lifestage) {
 # )
 
 # now but we don't want to count the 0's manually
-matrix2(
-  c(
-    input_flemish_boar$reproduction,
-    c(rep(0, grep("juvenile", lifestages) - 1), fetch_survival("juvenile"), rep(0, length(lifestages) - grep("juvenile", lifestages))),
-    c(rep(0, grep("subadult", lifestages) - 1), fetch_survival("subadult"), fetch_survival("adult"))
-  ),
-  stages = lifestages
-)
+# matrix2(
+#   c(
+#     input_flemish_boar$reproduction,
+#     c(rep(0, grep("juvenile", lifestages) - 1), fetch_survival("juvenile"), rep(0, length(lifestages) - grep("juvenile", lifestages))),
+#     c(rep(0, grep("subadult", lifestages) - 1), fetch_survival("subadult"), fetch_survival("adult"))
+#   ),
+#   stages = lifestages
+# )
 
 # can we somehow do figure out when to switch for the last line?
 
@@ -167,22 +169,22 @@ create_population_matrix <- function(input_df,selected_species,selected_locality
 
 # can we calculate population evolution -----------------------------------
 
-deer_matrix <-
-  create_population_matrix(input,
-                           selected_species = "deer",
-                           selected_locality = "Wallonia")
+# deer_matrix <-
+#   create_population_matrix(input,
+#                            selected_species = "deer",
+#                            selected_locality = "Wallonia")
 
 # n is number of animals per stage
 
 # iterations is the number of "years" assuming that every generation only takes
 # one year
-pop_evolution <- 
-  pop.projection(deer_matrix,
-               n = rep(100,nrow(deer_matrix)),
-               iterations = 10+1)
+# pop_evolution <-
+#   pop.projection(deer_matrix,
+#                n = rep(100,nrow(deer_matrix)),
+#                iterations = 10+1)
 
 
-# visualisation -----------------------------------------------------------
+# visualisation experimentation with labels ------------------------------------
 
 
 pop_evolution_stages <- 
