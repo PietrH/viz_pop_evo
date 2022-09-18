@@ -27,5 +27,5 @@ dynamic_species intermediary dataframe
 data.table::fread(file.path("data", "pop_dyn.csv")) \%>\%
 dplyr::filter(species == "deer",
 locality == "Wallonia") \%>\%
-fetch_locality
+fetch_survival
 }
