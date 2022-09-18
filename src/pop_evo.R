@@ -249,11 +249,27 @@ viz_pop_evo <-
            selected_locality,
            n = NULL,
            years = 10,
-           colours = NULL) {
+           colours = NULL,
+           show_labels = TRUE) {
+    
+    # filter down our input df to only the species and locality specified
+    species_dynamics <-
+      dplyr::filter(input_df,
+                    species == selected_species,
+                    locality == selected_locality)
+    
+    # TODO make create_population_matrix accept species_dynamics instead of
+    # input_df
+    
     pop_matrix <-
       create_population_matrix(input_df,
                                selected_species,
                                selected_locality)
+    
+    # extract the different values for lifestages, they are assumed to be
+    # arranged from young to old, then count them.
+    lifestages <- unique(species_dynamics$lifestage)
+    number_of_lifestages <- length(lifestages)
     
     # if no n is provided, assume 100 individuals per lifestage
     if (is.null(n)) {
@@ -269,7 +285,7 @@ viz_pop_evo <-
     pop_evolution <-
       pop.projection(pop_matrix,
                      n = n,
-                     iterations = years +1)
+                     iterations = years + 1)
     
     pop_evolution_stages <-
       pop_evolution %>%
@@ -287,7 +303,8 @@ viz_pop_evo <-
     # outside of the model, the intermediary functions also fetch it twice, so
     # we can avoid repetition this way
     
-    ggplot2::ggplot(pop_evolution_stages) +
+    out_plot <- 
+      ggplot2::ggplot(pop_evolution_stages) +
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
       # ggplot2::scale_color_hue(direction = 1) +
@@ -296,6 +313,24 @@ viz_pop_evo <-
                                             names(pop_evolution$stable.stage))) +
       ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
       ggplot2::theme_minimal()
+    
+    if(show_labels){
+      
+      # I don't know of a good spot to put the label annotation, so I've put it
+      # about 75% in on the plot for now
+      annotation <-
+        pop_evolution_stages %>%
+        group_by(lifestage) %>%
+        summarise(x75 = purrr::pluck(years, floor(0.75 * length(years))),
+                  y75 = purrr::pluck(value, floor(0.75 * length(value))))
+      
+      out_plot +
+        ggplot2::geom_label(
+          data = annotation,
+          ggplot2::aes(x = x75, y = y75, label = lifestage),
+          inherit.aes = FALSE
+        )
+    } else {out_plot}
     
   }
 
