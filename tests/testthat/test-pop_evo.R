@@ -54,3 +54,72 @@ test_that("Check if output plot is valid", {
   expect_identical(purrr::pluck(plot, "labels", "label"), "lifestage")
   expect_true(grepl("lambda", purrr::pluck(plot, "labels", "subtitle")))
 })
+
+test_that("Create correct and valid population matrix", {
+  species_dynamics <-
+    dplyr::filter(
+      example_pop_dyn,
+      species == "deer",
+      locality == "Wallonia"
+    )
+  lifestages <- unique(species_dynamics$lifestage)
+  expect_identical(
+    create_population_matrix(species_dynamics, lifestages),
+    popbio::matrix2(
+      c(0, 0, 0.95, 0.7, 0.45, 0, 0, 0, 0, 0.7, 0, 0, 0, 0, 0.9, 0.5),
+      stages = c("juvenile", "subadult", "adult", "senescent")
+    )
+  )
+})
+
+test_that("Warn for colour", {
+  expect_warning(
+    viz_pop_evo(
+      example_pop_dyn,
+      "wild boar",
+      "Flanders",
+      n = c(50, 50, 40),
+      show_labels = F
+    ),
+    "No provided colours, defaulting to #000000",
+    fixed = TRUE
+  )
+  expect_warning(
+    viz_pop_evo(
+      example_pop_dyn,
+      "wild boar",
+      "Flanders",
+      n = c(50, 50, 40),
+      colours = c("#FF0000", "#0000FF"),
+      show_labels = F
+    )
+  )
+})
+
+test_that("Warn for n", {
+  expect_warning(
+    viz_pop_evo(
+      example_pop_dyn,
+      "wild boar",
+      "Flanders",
+      show_labels = F,
+      colours = rep("#000000",3)
+    ))
+  expect_warning(viz_pop_evo(
+    example_pop_dyn,
+    "wild boar",
+    "Flanders",
+    show_labels = F,
+    colours = rep("#000000",3),
+    n = c(4,4)
+  ))
+  expect_warning(viz_pop_evo(
+    example_pop_dyn,
+    "wild boar",
+    "Flanders",
+    show_labels = F,
+    colours = rep("#000000",3),
+    n = c(4,4,9,19,29)
+  ))
+})
+
