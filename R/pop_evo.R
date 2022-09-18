@@ -1,75 +1,3 @@
-# From input csv, create a population matrix, calculates population demoraphic
-# evolution, and returns a line graph
-
-# load libraries ----------------------------------------------------------
-
-# # library(data.table) # CRAN v1.14.2
-# library(dplyr) # CRAN v1.0.7
-# library(popbio) # CRAN v2.7
-# library(ggplot2) # CRAN v3.3.5
-# library(docstring)
-
-# major purrr dependency, can soft data.table dependency
-
-# load input data ---------------------------------------------------------
-
-
-# input <-
-#   tibble(
-#     locality = c(
-#       "Flanders",
-#       "Flanders",
-#       "Flanders",
-#       "Sweden",
-#       "Sweden",
-#       "Sweden",
-#       "Wallonia",
-#       "Wallonia",
-#       "Wallonia",
-#       "Wallonia"
-#     ),
-#     species = c(
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "deer",
-#       "deer",
-#       "deer",
-#       "deer"
-#     ),
-#     lifestage = c(
-#       "juvenile",
-#       "subadult",
-#       "adult",
-#       "juvenile",
-#       "subadult",
-#       "adult",
-#       "juvenile",
-#       "subadult",
-#       "adult",
-#       "senescent"
-#     ),
-#     reproduction = c(0.59, 1.76, 2.29, 0.13, 0.56, 1.64, 0, 0, 0.95, 0.7),
-#     survival = c(0.52, 0.6, 0.71, 0.25, 0.31, 0.58, 0.45, 0.7, 0.9, 0.5)
-#   )
-
-# check number of different possible lifestages
-# data.table::uniqueN(input$lifestage)
-
-## write csv out -----------------------------------------------------------
-
-# data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
-
-
-## read csv in -------------------------------------------------------------
-
-# input <- data.table::fread(file.path("data", "pop_dyn.csv"))
-
-
-
 # helper functions --------------------------------------------------------
 
 
@@ -80,18 +8,17 @@
 #' dynamic_species intermediary dataframe
 #'
 #' @param input_df Input dataframe that contains at least the columns survival
-#'  and lifestage, ideally one that's been filtered already to a specific
-#'  species and location
-#' @param selected_lifestage The lifestage to get, actually \code{dplyr::pull}
-#' , the survival value from
+#'   and lifestage, ideally one that's been filtered already to a specific
+#'   species and location
+#' @param selected_lifestage The lifestage to get, actually \code{dplyr::pull} ,
+#'   the survival value from
 #'
 #' @return one or more values of the same class as in the input dataframe
 #' @export
 #'
 #' @examples
-#' fetch_survival(dplyr::filter(example_pop_dyn,species == "deer",locality == "Wallonia"),"adult")
+#' fetch_survival(dplyr::filter(example_pop_dyn, species == "deer", locality == "Wallonia"), "adult")
 fetch_survival <- function(input_df, selected_lifestage) {
-
   input_df %>%
     dplyr::filter(lifestage == selected_lifestage) %>%
     dplyr::pull(survival)
@@ -149,31 +76,33 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 #' @export
 #'
 #' @examples
-#' colstring_to_hex("red","yellow2","springgreen4")
+#' colstring_to_hex("red", "yellow2", "springgreen4")
 colstring_to_hex <-
   function(...) {
     grDevices::rgb(t(grDevices::col2rgb(c(...))), max = 255)
   }
 
-# helper function to check if a user entered the expected number of values, if not,
-# return a default value an expected amount of times
+# helper function to check if a user entered the expected number of values, if
+# not, return a default value an expected amount of times
 check_user_entry <-
   function(value,
            value_name,
            expected_number_of_values,
            expected_number_name,
            default_value) {
-
     if (is.null(value)) {
-      warning(glue::glue("No provided {value_name}, defaulting to {default_value}"),
-              call. = FALSE)
+      warning(
+        glue::glue("No provided {value_name}, defaulting to {default_value}"),
+        call. = FALSE
+      )
       return(rep(default_value, expected_number_of_values))
     } else {
       if (length(value) != expected_number_of_values) {
         warning(
           glue::glue(
             "Provided different number of {value_name}: {length(value)} ",
-            "then the number of {expected_number_name}: {expected_number_of_values}",
+            "then the number of {expected_number_name}: ",
+            "{expected_number_of_values}",
             " defaulting to {default_value}"
           ),
           call. = FALSE
@@ -189,39 +118,39 @@ check_user_entry <-
 # Main function, build the population matrix, calculate the population ---------
 # evolution, and plot it
 
-#'Build a population matrix, project the evolution of the population, and
-#'visualise the results
+#' Build a population matrix, project the evolution of the population, and
+#' visualise the results
 #'
-#'@param input_df Input dataframe, with columns \code{locality}, \code{species}
+#' @param input_df Input dataframe, with columns \code{locality}, \code{species}
 #'  , \code{lifestage}, \code{reproduction} and \code{survival}
-#'@param selected_species The species from the input_df for which the model
+#' @param selected_species The species from the input_df for which the model
 #'  should be visualized
-#'@param selected_locality The locality for the species that should be
+#' @param selected_locality The locality for the species that should be
 #'  visualized
-#'@param n A vector of integers, specifying the number of individuals per
+#' @param n A vector of integers, specifying the number of individuals per
 #'  lifestage. If not provided, the function will default to 100 individuals for
 #'  every lifestage
-#'@param years The number of years the model should run for, really the number
+#' @param years The number of years the model should run for, really the number
 #'  of equally spaced points in time between the lifestages
-#'@param colours A character vector of hex codes of equal length to the number
+#' @param colours A character vector of hex codes of equal length to the number
 #'  of lifestages, these colours are used in the plot this function generates.
-#'@seealso [colstring_to_hex()] which can be used to convert built-in R colours
+#' @seealso [colstring_to_hex()] which can be used to convert built-in R colours
 #'  to hex codes. If no colours are provided (the default), the function will
 #'  return all resulting curves in black
-#'@param show_labels Either \code{TRUE} or \code{FALSE}, optionally show extra
+#' @param show_labels Either \code{TRUE} or \code{FALSE}, optionally show extra
 #'  labels on the output plot. This might be useful if no colours are provided
 #'
-#'@return a ggplot object that shows the projection of the population for
+#' @return a ggplot object that shows the projection of the population for
 #'  \code{years} steps
-#'@export
+#' @export
 #'
 #' @examples
 #' viz_pop_evo(example_pop_dyn,
-#'             "wild boar",
-#'             "Flanders",
-#'             colours = colstring_to_hex("cyan","yellow2","plum4"),
-#'              show_labels = FALSE)
-
+#'   "wild boar",
+#'   "Flanders",
+#'   colours = colstring_to_hex("cyan", "yellow2", "plum4"),
+#'   show_labels = FALSE
+#' )
 viz_pop_evo <-
   function(input_df,
            selected_species,
@@ -317,10 +246,15 @@ viz_pop_evo <-
       ggplot2::ggplot(pop_evolution_stages) +
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
-      ggplot2::scale_color_manual(values = purrr::set_names(colours, lifestages)) +
-      ggplot2::ggtitle(glue::glue("Projection of the {selected_species}",
-                                  " population from {selected_locality}"),
-                       sprintf("lambda = %.6g", pop_evolution$lambda)) +
+      ggplot2::scale_color_manual(
+        values = purrr::set_names(colours, lifestages)) +
+      ggplot2::ggtitle(
+        glue::glue(
+          "Projection of the {selected_species}",
+          " population from {selected_locality}"
+        ),
+        sprintf("lambda = %.6g", pop_evolution$lambda)
+      ) +
       ggplot2::theme_minimal()
 
     # let's try to add point symbols to the lines to distinguish between lifestages
@@ -361,4 +295,3 @@ viz_pop_evo <-
       out_plot
     }
   }
-

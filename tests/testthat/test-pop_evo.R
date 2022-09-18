@@ -32,7 +32,7 @@ test_that("Error on missing columns", {
       n = c(10, 20, 10),
       years = 5,
       colours = colstring_to_hex("blue", "green", "red"),
-      show_labels = F
+      show_labels = FALSE
     )
   })
 })
@@ -46,7 +46,7 @@ test_that("Check if output plot is valid", {
       "Sweden",
       c(100, 200, 20),
       years = 50,
-      show_labels = T,
+      show_labels = TRUE,
       colours = colstring_to_hex("blue", "green", "red")
     )
   expect_identical(purrr::pluck(plot, "labels", "x"), "years")
@@ -66,25 +66,27 @@ test_that("Check if we can turn the labels off", {
       show_labels = FALSE,
       colours = colstring_to_hex("blue", "green", "red")
     )
-  expect_false("label" %in% names(purrr::pluck(plot,"labels")))
+  expect_false("label" %in% names(purrr::pluck(plot, "labels")))
 })
 
 
 test_that("User entry should intercept and replace by default", {
   expect_warning(check_user_entry(NULL,
-                                  "colour",
-                                  4,
-                                  "lifestages",
-                                  default_value = "#000000"))
-  expect_identical(suppressWarnings(
-    check_user_entry(NULL, "colour", 4, "lifestages", default_value = "#000000")
-  ),
-  rep("#000000", 4))
+    "colour",
+    4,
+    "lifestages",
+    default_value = "#000000"
+  ))
+  expect_identical(
+    suppressWarnings(
+      check_user_entry(NULL, "colour", 4, "lifestages", default_value = "#000000")
+    ),
+    rep("#000000", 4)
+  )
   expect_warning(check_user_entry(rep("#CD3278", 3),
-                                  "colour",
-                                  4,
-                                  "lifestages",
-                                  default_value = "#000000"))
-
+    "colour",
+    4,
+    "lifestages",
+    default_value = "#000000"
+  ))
 })
-
