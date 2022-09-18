@@ -40,12 +40,14 @@ test_that("Error on missing columns",
 
 
 test_that("Check if output plot is valid",{
-  input <-input <- data.table::fread(
+  input  <- data.table::fread(
     file.path("..",
               "..",
               "data",
               "pop_dyn.csv"))
-  plot <- viz_pop_evo("wild boar","Sweden",c(100,200,20),years = 50,show_labels = T)
-
+  plot <- viz_pop_evo(input, "wild boar","Sweden",c(100,200,20),years = 50,show_labels = T)
+  expect_identical(purrr::pluck(plot,"labels","x"),"years")
+  expect_identical(purrr::pluck(plot,"labels","y"),"n")
+  expect_identical(purrr::pluck(plot, "labels", "label"),"lifestage")
 }
           )
