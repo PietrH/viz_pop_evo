@@ -3,32 +3,69 @@
 
 # load libraries ----------------------------------------------------------
 
-library(data.table) # CRAN v1.14.2
+# library(data.table) # CRAN v1.14.2
 library(dplyr) # CRAN v1.0.7
 library(popbio) # CRAN v2.7
 library(ggplot2) # CRAN v3.3.5
 
-# major purrr dependency, can reduce data.table dependency
+# major purrr dependency, can soft data.table dependency
 
 # load input data ---------------------------------------------------------
 
 
-input <-
-  tibble(
-    locality = c("Flanders", "Flanders", "Flanders", "Sweden", "Sweden", "Sweden", "Wallonia", "Wallonia", "Wallonia", "Wallonia"),
-    species = c("wild boar", "wild boar", "wild boar", "wild boar", "wild boar", "wild boar", "deer", "deer", "deer", "deer"),
-    lifestage = c("juvenile", "subadult", "adult", "juvenile", "subadult", "adult", "juvenile", "subadult", "adult", "senescent"),
-    reproduction = c(0.59, 1.76, 2.29, 0.13, 0.56, 1.64, 0, 0, 0.95, 0.7),
-    survival = c(0.52, 0.6, 0.71, 0.25, 0.31, 0.58, 0.45, 0.7, 0.9, 0.5)
-  ) %>%
-  setDT()
+# input <-
+#   tibble(
+#     locality = c(
+#       "Flanders",
+#       "Flanders",
+#       "Flanders",
+#       "Sweden",
+#       "Sweden",
+#       "Sweden",
+#       "Wallonia",
+#       "Wallonia",
+#       "Wallonia",
+#       "Wallonia"
+#     ),
+#     species = c(
+#       "wild boar",
+#       "wild boar",
+#       "wild boar",
+#       "wild boar",
+#       "wild boar",
+#       "wild boar",
+#       "deer",
+#       "deer",
+#       "deer",
+#       "deer"
+#     ),
+#     lifestage = c(
+#       "juvenile",
+#       "subadult",
+#       "adult",
+#       "juvenile",
+#       "subadult",
+#       "adult",
+#       "juvenile",
+#       "subadult",
+#       "adult",
+#       "senescent"
+#     ),
+#     reproduction = c(0.59, 1.76, 2.29, 0.13, 0.56, 1.64, 0, 0, 0.95, 0.7),
+#     survival = c(0.52, 0.6, 0.71, 0.25, 0.31, 0.58, 0.45, 0.7, 0.9, 0.5)
+#   )
 
 # check number of different possible lifestages
 # data.table::uniqueN(input$lifestage)
 
 ## write csv out -----------------------------------------------------------
 
-data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
+# data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
+
+
+## read csv in -------------------------------------------------------------
+
+input <- data.table::fread(file.path("data", "pop_dyn.csv"))
 
 
 # build population matrix -------------------------------------------------
@@ -73,13 +110,7 @@ data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
 #     pull(survival)
 # }
 
-# function to fetch a survival value for a specific lifestage from a
-# dynamic_species intermediair dataframe
-fetch_survival <- function(input_df, selected_lifestage) {
-  input_df %>%
-    filter(lifestage == selected_lifestage) %>%
-    pull(survival)
-}
+
 
 
 # out <- pop_df
@@ -112,8 +143,21 @@ fetch_survival <- function(input_df, selected_lifestage) {
 
 # can we somehow do figure out when to switch for the last line?
 
-# function to create the second to nth row of the projection/population matrix,
-# first row is fertility
+
+# helper functions --------------------------------------------------------
+
+
+
+# helper function to fetch a survival value for a specific lifestage from a
+# dynamic_species intermediair dataframe
+fetch_survival <- function(input_df, selected_lifestage) {
+  input_df %>%
+    dplyr::filter(lifestage == selected_lifestage) %>%
+    dplyr::pull(survival)
+}
+
+# helper function to create the second to nth row of the projection/population
+# matrix, first row is fertility
 build_matrix_row <- function(input_df, selected_lifestage) {
   lifestages <- pull(input_df, lifestage)
 
@@ -238,23 +282,48 @@ colstring_to_hex <-
     rgb(t(col2rgb(c(...))), max = 255)
   }
 
-# helper function to check if the input dataframe has all the necessary columns
-check_input_data_for_columns <- function(input_df) {
-  required <- c("locality", "species", "lifestage", "reproduction", "survival")
-  missing_columns <- required[!required %in% names(input_df)]
-  assertthat::assert_that(length(missing_columns) == 0,
-                          # msg = glue::glue("{paste(missing_columns,collapse = ', ')} ",
-                          #                  "{ifelse(length(missing_columns)>1,'are','is')}",
-                          #                  " missing from {deparse(substitute(input_df))}"))
-                          msg = glue::glue(
-                            "{deparse(substitute(input_df))}",
-                            " is missing ",
-                            "{ifelse(length(missing_columns)>1,'some columns','a column')}",
-                            ": {paste(missing_columns,collapse = ', ')}"
-                          )
-  )
-  return(glimpse(input_df))
-}
+# test function to check for required columns in a dataframe
+# check_input_data_for_columns <- function(input_df) {
+#   required <- c("locality", "species", "lifestage", "reproduction", "survival")
+#   missing_columns <- required[!required %in% names(input_df)]
+#   assertthat::assert_that(length(missing_columns) == 0,
+#                           msg = glue::glue(
+#                             "{deparse(substitute(input_df))}",
+#                             " is missing ",
+#                             "{ifelse(length(missing_columns)>1,'some columns','a column')}",
+#                             ": {paste(missing_columns,collapse = ', ')}"
+#                           )
+#   )
+#   return(glimpse(input_df))
+# }
+
+# helper function to check if a user entered the expected number of values, if not,
+# return a default value an expected amount of times
+check_user_entry <-
+  function(value,
+           value_name,
+           expected_number_of_values,
+           expected_number_name,
+           default_value) {
+    if (is.null(value)) {
+      warning("No provided {value_name}, defaulting to {default_value}")
+      return(rep(default_value, expected_number_of_values))
+    } else {
+      if (length(value) != expected_number_of_values) {
+        warning(
+          glue::glue(
+            "Provided different number of {value_name}: {length(value)} ",
+            "then the number of {expected_number_name}: {expected_number_of_values}",
+            " defaulting to {default_value}"
+          )
+        )
+        return(rep(default_value, expected_number_of_values))
+      }
+    }
+
+    # if all is in order, return the input value as is
+    return(value)
+  }
 
 # Main function, build the population matrix, calculate the population ---------
 # evolution, and plot it
@@ -266,10 +335,10 @@ viz_pop_evo <-
            years = 10,
            colours = NULL,
            show_labels = TRUE) {
-    
+
     # check if all neccesairy arguments have been provided
-    
-    req_arg <- c("input_df","selected_species","selected_locality")
+
+    req_arg <- c("input_df", "selected_species", "selected_locality")
     passed <- names(as.list(match.call())[-1])
     # from https://stackoverflow.com/a/38758257
     if (any(!req_arg %in% passed)) {
@@ -278,10 +347,10 @@ viz_pop_evo <-
         paste(setdiff(req_arg, passed), collapse = ", ")
       ))
     }
-    
-    
+
+
     # check if input data contains all the required columns
-    required <- 
+    required <-
       c("locality", "species", "lifestage", "reproduction", "survival")
     missing_columns <- required[!required %in% names(input_df)]
     assertthat::assert_that(
@@ -293,7 +362,7 @@ viz_pop_evo <-
         ": {paste(missing_columns,collapse = ', ')}"
       )
     )
-    
+
 
     # filter down our input_df to only the species and locality specified
     species_dynamics <-
@@ -315,11 +384,11 @@ viz_pop_evo <-
     # if (is.null(n)) {
     #   n <- rep(100, nrow(pop_matrix))
     # }
-    # 
+    #
     # if (is.null(colours)) {
     #   colours <- rep("#000000", nrow(pop_matrix))
     # }
-    
+
     # set default colour and number of individuals
     colours <-
       check_user_entry(
@@ -423,7 +492,7 @@ viz_pop_evo <-
 # check_miss_arg <- function(a, b, c) {
 #   defined <- c("a","b")
 #   passed <- names(as.list(match.call())[-1])
-# 
+#
 #   if (any(!defined %in% passed)) {
 #     stop(paste("You must provide", paste(setdiff(defined, passed), collapse = ", ")))
 #   }
@@ -434,33 +503,7 @@ viz_pop_evo <-
 # handle number of colours should match number of lifestages, but still be black
 # stock
 
-# function to check if a user entered the expected number of values, if not,
-# return a default value an expected amount of times
-check_user_entry <-
-  function(value,
-           value_name,
-           expected_number_of_values,
-           expected_number_name,
-           default_value) {
-    if (is.null(value)) {
-      warning("No provided {value_name}, defaulting to {default_value}")
-      return(rep(default_value, expected_number_of_values))
-    } else {
-      if (length(value) != expected_number_of_values) {
-        warning(
-          glue::glue(
-            "Provided different number of {value_name}: {length(value)} ",
-            "then the number of {expected_number_name}: {expected_number_of_values}",
-            " defaulting to {default_value}"
-          )
-        )
-        return(rep(default_value, expected_number_of_values))
-      }
-    }
 
-    # if all is in order, return the input value as is
-    return(value)
-  }
 
 # return_cols <- function(input_df,
 #                         selected_species,
@@ -475,8 +518,8 @@ check_user_entry <-
 #     )
 #   lifestages <- unique(species_dynamics$lifestage)
 #   number_of_lifestages <- length(lifestages)
-# 
-# 
+#
+#
 #   colours <-
 #     check_user_entry(
 #       colours,
@@ -495,5 +538,3 @@ check_user_entry <-
 #     )
 #   return(colours)
 # }
-
-
