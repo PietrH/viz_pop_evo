@@ -151,13 +151,10 @@ build_matrix_row <- function(input_df, selected_lifestage) {
 
 
 create_population_matrix <- function(species_dynamics, lifestages) {
-
-  
-  # head(lifestages,-1)
   # force class to numeric (not integer) to avoid trouble with popbio
   c(
     pull(species_dynamics, reproduction),
-    purrr::map(lifestages[1:length(lifestages) - 1],
+    purrr::map(head(lifestages,-1),
                build_matrix_row,
                input_df = species_dynamics)
   ) %>%
