@@ -3,11 +3,11 @@
 
 # load libraries ----------------------------------------------------------
 
-# library(data.table) # CRAN v1.14.2
-library(dplyr) # CRAN v1.0.7
-library(popbio) # CRAN v2.7
-library(ggplot2) # CRAN v3.3.5
-library(docstring)
+# # library(data.table) # CRAN v1.14.2
+# library(dplyr) # CRAN v1.0.7
+# library(popbio) # CRAN v2.7
+# library(ggplot2) # CRAN v3.3.5
+# library(docstring)
 
 # major purrr dependency, can soft data.table dependency
 
@@ -66,7 +66,7 @@ library(docstring)
 
 ## read csv in -------------------------------------------------------------
 
-input <- data.table::fread(file.path("data", "pop_dyn.csv"))
+# input <- data.table::fread(file.path("data", "pop_dyn.csv"))
 
 
 
@@ -92,7 +92,7 @@ input <- data.table::fread(file.path("data", "pop_dyn.csv"))
 #' data.table::fread(file.path("data", "pop_dyn.csv")) %>%
 #' dplyr::filter(species == "deer",
 #' locality == "Wallonia") %>%
-#' fetch_locality
+#' fetch_survival
 fetch_survival <- function(input_df, selected_lifestage) {
 
   input_df %>%
