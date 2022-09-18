@@ -12,7 +12,7 @@ test_that("fetch_survival can fetch a value",
 test_that("Error on missing arguments",
   {expect_error({
     data(example_pop_dyn)
-    viz_pop_evo(example_pop_dyn)},
+    vizpopevo(example_pop_dyn)},
 "The following arguments are required, but missing: selected_species, selected_locality",
 fixed = TRUE
                  )})
@@ -22,7 +22,7 @@ test_that("Error on missing columns",
             data(example_pop_dyn)
             input <- dplyr::select(example_pop_dyn,-survival)
 
-            viz_pop_evo(
+            vizpopevo(
               input_df = input,
               selected_species = "wild boar",
               selected_locality = "Flanders",
@@ -39,7 +39,7 @@ test_that("Error on missing columns",
 test_that("Check if output plot is valid",{
   data(example_pop_dyn)
   plot <-
-    viz_pop_evo(
+    vizpopevo(
       example_pop_dyn,
       "wild boar",
       "Sweden",
