@@ -238,8 +238,25 @@ colstring_to_hex <-
     rgb(t(col2rgb(c(...))), max = 255)
   }
 
+# helper function to check if the input dataframe has all the necessary columns
+check_input_data_for_columns <- function(input_df) {
+  required <- c("locality", "species", "lifestage", "reproduction", "survival")
+  missing_columns <- required[!required %in% names(input_df)]
+  assertthat::assert_that(length(missing_columns) == 0,
+                          # msg = glue::glue("{paste(missing_columns,collapse = ', ')} ",
+                          #                  "{ifelse(length(missing_columns)>1,'are','is')}",
+                          #                  " missing from {deparse(substitute(input_df))}"))
+                          msg = glue::glue(
+                            "{deparse(substitute(input_df))}",
+                            " is missing ",
+                            "{ifelse(length(missing_columns)>1,'some columns','a column')}",
+                            ": {paste(missing_columns,collapse = ', ')}"
+                          )
+  )
+  return(glimpse(input_df))
+}
 
-# Main function, build the population matrix, calculate the population
+# Main function, build the population matrix, calculate the population ---------
 # evolution, and plot it
 viz_pop_evo <-
   function(input_df,
@@ -249,8 +266,36 @@ viz_pop_evo <-
            years = 10,
            colours = NULL,
            show_labels = TRUE) {
+    
+    # check if all neccesairy arguments have been provided
+    
+    req_arg <- c("input_df","selected_species","selected_locality")
+    passed <- names(as.list(match.call())[-1])
+    # from https://stackoverflow.com/a/38758257
+    if (any(!req_arg %in% passed)) {
+      stop(paste(
+        "The following arguments are required, but missing:",
+        paste(setdiff(req_arg, passed), collapse = ", ")
+      ))
+    }
+    
+    
+    # check if input data contains all the required columns
+    required <- 
+      c("locality", "species", "lifestage", "reproduction", "survival")
+    missing_columns <- required[!required %in% names(input_df)]
+    assertthat::assert_that(
+      length(missing_columns) == 0,
+      msg = glue::glue(
+        "{deparse(substitute(input_df))}",
+        " is missing ",
+        "{ifelse(length(missing_columns)>1,'some columns','a column')}",
+        ": {paste(missing_columns,collapse = ', ')}"
+      )
+    )
+    
 
-    # filter down our input df to only the species and locality specified
+    # filter down our input_df to only the species and locality specified
     species_dynamics <-
       dplyr::filter(
         input_df,
@@ -375,15 +420,15 @@ viz_pop_evo <-
 # rlang::missing, but it's not a mature function, and this is base
 
 # from https://stackoverflow.com/a/38758257
-check_miss_arg <- function(a, b, c) {
-  defined <- ls()
-  passed <- names(as.list(match.call())[-1])
-
-  if (any(!defined %in% passed)) {
-    stop(paste("You must provide", paste(setdiff(defined, passed), collapse = ", ")))
-  }
-  message(paste(a, b, c))
-}
+# check_miss_arg <- function(a, b, c) {
+#   defined <- c("a","b")
+#   passed <- names(as.list(match.call())[-1])
+# 
+#   if (any(!defined %in% passed)) {
+#     stop(paste("You must provide", paste(setdiff(defined, passed), collapse = ", ")))
+#   }
+#   message(paste(a, b, c))
+# }
 
 
 # handle number of colours should match number of lifestages, but still be black
@@ -417,55 +462,38 @@ check_user_entry <-
     return(value)
   }
 
-return_cols <- function(input_df,
-                        selected_species,
-                        selected_locality,
-                        colours = NULL,
-                        n = NULL) {
-  species_dynamics <-
-    dplyr::filter(
-      input_df,
-      species == selected_species,
-      locality == selected_locality
-    )
-  lifestages <- unique(species_dynamics$lifestage)
-  number_of_lifestages <- length(lifestages)
+# return_cols <- function(input_df,
+#                         selected_species,
+#                         selected_locality,
+#                         colours = NULL,
+#                         n = NULL) {
+#   species_dynamics <-
+#     dplyr::filter(
+#       input_df,
+#       species == selected_species,
+#       locality == selected_locality
+#     )
+#   lifestages <- unique(species_dynamics$lifestage)
+#   number_of_lifestages <- length(lifestages)
+# 
+# 
+#   colours <-
+#     check_user_entry(
+#       colours,
+#       "colours",
+#       number_of_lifestages,
+#       "lifestages",
+#       "#000000"
+#     )
+#   n <-
+#     check_user_entry(
+#       n,
+#       "number of individuals per lifestage",
+#       number_of_lifestages,
+#       "lifestages",
+#       100
+#     )
+#   return(colours)
+# }
 
 
-  colours <-
-    check_user_entry(
-      colours,
-      "colours",
-      number_of_lifestages,
-      "lifestages",
-      "#000000"
-    )
-  n <-
-    check_user_entry(
-      n,
-      "number of individuals per lifestage",
-      number_of_lifestages,
-      "lifestages",
-      100
-    )
-  return(colours)
-}
-
-# function to check if the input data has all the necessary columns
-
-check_input_data_for_columns <- function(input_df) {
-  required <- c("locality", "species", "lifestage", "reproduction", "survival")
-  missing_columns <- required[!required %in% names(input_df)]
-  assertthat::assert_that(length(missing_columns) == 0,
-    # msg = glue::glue("{paste(missing_columns,collapse = ', ')} ",
-    #                  "{ifelse(length(missing_columns)>1,'are','is')}",
-    #                  " missing from {deparse(substitute(input_df))}"))
-    msg = glue::glue(
-      "{deparse(substitute(input_df))}",
-      " is missing ",
-      "{ifelse(length(missing_columns)>1,'some columns','a column')}",
-      ": {paste(missing_columns,collapse = ', ')}"
-    )
-  )
-  return(glimpse(input_df))
-}
