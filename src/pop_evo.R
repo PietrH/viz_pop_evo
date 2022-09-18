@@ -137,8 +137,10 @@ check_user_entry <-
            expected_number_of_values,
            expected_number_name,
            default_value) {
+    
     if (is.null(value)) {
-      warning("No provided {value_name}, defaulting to {default_value}")
+      warning(glue::glue("No provided {value_name}, defaulting to {default_value}"),
+              call. = FALSE)
       return(rep(default_value, expected_number_of_values))
     } else {
       if (length(value) != expected_number_of_values) {
@@ -147,7 +149,8 @@ check_user_entry <-
             "Provided different number of {value_name}: {length(value)} ",
             "then the number of {expected_number_name}: {expected_number_of_values}",
             " defaulting to {default_value}"
-          )
+          ),
+          call. = FALSE
         )
         return(rep(default_value, expected_number_of_values))
       }
@@ -254,7 +257,9 @@ viz_pop_evo <-
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
       ggplot2::scale_color_manual(values = purrr::set_names(colours, lifestages)) +
-      ggplot2::labs(subtitle = sprintf("lambda = %.6g", pop_evolution$lambda)) +
+      ggplot2::ggtitle(glue::glue("Projection of the {selected_species}",
+                                  " population from {selected_locality}"),
+                       sprintf("lambda = %.6g", pop_evolution$lambda)) +
       ggplot2::theme_minimal()
 
     # let's try to add point symbols to the lines to distinguish between lifestages
