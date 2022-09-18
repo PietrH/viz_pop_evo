@@ -216,15 +216,13 @@ check_user_entry <-
 #'@export
 #'
 #' @examples
-#' ```
-#' data <- data.table::fread(file.path("data", "pop_dyn.csv"))
-#' vizpopevo(data,
+#' viz_pop_evo(example_pop_dyn,
 #'             "wild boar",
 #'             "Flanders",
 #'             colours = colstring_to_hex("cyan","yellow2","plum4"),
 #'              show_labels = FALSE)
-#' ```
-vizpopevo <-
+
+viz_pop_evo <-
   function(input_df,
            selected_species,
            selected_locality,
