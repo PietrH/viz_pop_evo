@@ -86,6 +86,7 @@
 #' , the survival value from
 #'
 #' @return one or more values of the same class as in the input dataframe
+#' @export
 #'
 #' @examples
 #' fetch_survival(dplyr::filter(example_pop_dyn,species == "deer",locality == "Wallonia"),"adult")
