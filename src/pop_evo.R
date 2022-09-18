@@ -4,9 +4,9 @@
 # load libraries ----------------------------------------------------------
 
 library(data.table) # CRAN v1.14.2
-library(dplyr)      # CRAN v1.0.7
-library(popbio)     # CRAN v2.7
-library(ggplot2)    # CRAN v3.3.5
+library(dplyr) # CRAN v1.0.7
+library(popbio) # CRAN v2.7
+library(ggplot2) # CRAN v3.3.5
 
 # major purrr dependency, can reduce data.table dependency
 
@@ -21,7 +21,7 @@ input <-
     reproduction = c(0.59, 1.76, 2.29, 0.13, 0.56, 1.64, 0, 0, 0.95, 0.7),
     survival = c(0.52, 0.6, 0.71, 0.25, 0.31, 0.58, 0.45, 0.7, 0.9, 0.5)
   ) %>%
-   setDT()
+  setDT()
 
 # check number of different possible lifestages
 # data.table::uniqueN(input$lifestage)
@@ -43,24 +43,24 @@ data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
 # let's try flemish boars first
 
 # input_flemish_boar <- filter(input, species == "wild boar", locality == "Flanders")
-# 
+#
 # lifestages <- input_flemish_boar %>%
 #   pull(lifestage)
-# 
+#
 # # fertilities always in first row
 # input_flemish_boar %>%
 #   pull(reproduction) %>%
 #   t()
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # ## alternative
 # pop_df <-
 #   input_flemish_boar %>%
 #   select(reproduction, lifestage) %>%
 #   data.table::transpose(make.names = "lifestage")
-# 
+#
 # # get the index of the lifestage in consideration
 # # grep("subadult",lifestages)
 #
@@ -75,7 +75,7 @@ data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
 
 # function to fetch a survival value for a specific lifestage from a
 # dynamic_species intermediair dataframe
-fetch_survival <- function(input_df,selected_lifestage) {
+fetch_survival <- function(input_df, selected_lifestage) {
   input_df %>%
     filter(lifestage == selected_lifestage) %>%
     pull(survival)
@@ -91,7 +91,7 @@ fetch_survival <- function(input_df,selected_lifestage) {
 
 # using matrix2
 # matrix2(
-# 
+#
 #   c(
 #     input_flemish_boar$reproduction,
 #     pull(filter(input_flemish_boar, lifestage == "juvenile"), survival), 0, 0,
@@ -115,12 +115,12 @@ fetch_survival <- function(input_df,selected_lifestage) {
 # function to create the second to nth row of the projection/population matrix,
 # first row is fertility
 build_matrix_row <- function(input_df, selected_lifestage) {
-  lifestages <- pull(input_df,lifestage)
-  
+  lifestages <- pull(input_df, lifestage)
+
   # using seq_along instead of grep to force exact string matching, fixed = TRUE
-  selected_lifestage_index <- 
+  selected_lifestage_index <-
     seq_along(lifestages)[lifestages == selected_lifestage]
-  
+
   # is not cutting it
   if (selected_lifestage_index + 1 == length(lifestages)) {
     c(
@@ -137,7 +137,7 @@ build_matrix_row <- function(input_df, selected_lifestage) {
   }
 }
 
-                    # create matrix
+# create matrix
 # c(
 #   input_flemish_boar$reproduction,
 #   purrr::map(lifestages[1:length(lifestages) - 1],
@@ -154,14 +154,14 @@ create_population_matrix <- function(species_dynamics, lifestages) {
   # force class to numeric (not integer) to avoid trouble with popbio
   c(
     pull(species_dynamics, reproduction),
-    purrr::map(head(lifestages,-1),
-               build_matrix_row,
-               input_df = species_dynamics)
+    purrr::map(head(lifestages, -1),
+      build_matrix_row,
+      input_df = species_dynamics
+    )
   ) %>%
     purrr::flatten() %>%
     as.numeric() %>%
     matrix2(lifestages)
-  
 }
 
 
@@ -185,14 +185,14 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 # visualisation experimentation with labels ------------------------------------
 
 
-# pop_evolution_stages <- 
+# pop_evolution_stages <-
 #   pop_evolution %>%
 #   purrr::pluck("stage.vectors") %>%
 #   as_tibble(rownames = "lifestage") %>%
 #   tidyr::pivot_longer(cols = where(is.double),
-#                       names_to = "iteration") %>% 
+#                       names_to = "iteration") %>%
 #   mutate(years = as.integer(iteration))
-# 
+#
 # annotation <-
 #   data.frame(
 #     label = names(pop_evolution$stable.stage),
@@ -200,7 +200,7 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 #     # x = years,
 #     x = rep(11, 4)
 #   )
-# 
+#
 # p <- ggplot(pop_evolution_stages) +
 #   aes(x = years, y = value, colour = lifestage) +
 #   geom_line(size = 1.25) +
@@ -208,8 +208,8 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 #   scale_color_hue(direction = 1) +
 #   theme_minimal() +
 #   theme(legend.position = "bottom")
-#   
-# 
+#
+#
 # # NOTE possibly better off using ggplot2::annotation_custom
 # p +
 #   geom_label(data = annotation,
@@ -217,17 +217,17 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 #              inherit.aes = FALSE) +
 #   # coord_cartesian(xlim = c(0,years), clip = "off") +
 #   coord_cartesian(xlim = c(0,10), clip = "on")
-# 
+#
 # p + geom_label(data = annotation, ggplot2::aes(x = 10, y = y, label = label),
 #               inherit.aes = FALSE, hjust = 0.5, nudge_x = 1) +
 #   coord_cartesian(xlim = c(0,10), clip = "on") +
 #   theme(plot.margin = unit(c(0,11,0,0),"char"))
 #         # theme(plot.margin = unit(c(0,0,0,max(nchar(lifestages))+2),"char")
-# 
+#
 # # example with just annotate
 # p + annotate("text", x=10, y=annotation$y, label = annotation$label)
-# 
-# # putting label texts on top of the plots 
+#
+# # putting label texts on top of the plots
 # p + geom_label(data = annotation, ggplot2::aes(x = 7, y =  pull(filter(pop_evolution_stages,years == 7),value), label = label),
 #                inherit.aes = FALSE, hjust = 0, position = position_dodge(width = 3))
 # visualisation as a function ---------------------------------------------
@@ -249,62 +249,69 @@ viz_pop_evo <-
            years = 10,
            colours = NULL,
            show_labels = TRUE) {
-    
+
     # filter down our input df to only the species and locality specified
     species_dynamics <-
-      dplyr::filter(input_df,
-                    species == selected_species,
-                    locality == selected_locality)
+      dplyr::filter(
+        input_df,
+        species == selected_species,
+        locality == selected_locality
+      )
     # extract the different values for lifestages, they are assumed to be
     # arranged from young to old, then count them.
     lifestages <- unique(species_dynamics$lifestage)
     number_of_lifestages <- length(lifestages)
-    
-    pop_matrix <- create_population_matrix(species_dynamics,lifestages)
-    
-    
-    
+
+    pop_matrix <- create_population_matrix(species_dynamics, lifestages)
+
+
+
     # if no n is provided, assume 100 individuals per lifestage
     if (is.null(n)) {
       n <- rep(100, nrow(pop_matrix))
     }
-    
+
     if (is.null(colours)) {
-      colours <- rep("#000000",nrow(pop_matrix))
+      colours <- rep("#000000", nrow(pop_matrix))
     }
-    
+
     # iterations starts counting from the starting position, so 10 iterations
     # would give you frames 0 to 9
     pop_evolution <-
       pop.projection(pop_matrix,
-                     n = n,
-                     iterations = years + 1)
-    
+        n = n,
+        iterations = years + 1
+      )
+
     pop_evolution_stages <-
       pop_evolution %>%
       purrr::pluck("stage.vectors") %>%
       as_tibble(rownames = "lifestage") %>%
-      tidyr::pivot_longer(cols = where(is.double),
-                          names_to = "iteration") %>%
-      mutate(years = as.integer(iteration),
-             n = value)
-    
+      tidyr::pivot_longer(
+        cols = where(is.double),
+        names_to = "iteration"
+      ) %>%
+      mutate(
+        years = as.integer(iteration),
+        n = value
+      )
+
     # TODO When there are colours defined, do scale_color_manual, otherwise just
     # use black
-    
+
     # TODO it's easier to read if we store the possible lifestages in a vector
     # outside of the model, the intermediary functions also fetch it twice, so
     # we can avoid repetition this way
-    
-    out_plot <- 
+
+    out_plot <-
       ggplot2::ggplot(pop_evolution_stages) +
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
-      ggplot2::scale_color_manual(values = purrr::set_names(colours,lifestages)) +
-      ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
+      ggplot2::scale_color_manual(values = purrr::set_names(colours, lifestages)) +
+      ggplot2::labs(subtitle = sprintf("lambda = %.6g", pop_evolution$lambda)) +
       ggplot2::theme_minimal()
-    
-# let's try to add point symbols to the lines to distinguish between lifestages
+
+    # let's try to add point symbols to the lines to distinguish between lifestages
     # ggplot2::ggplot(pop_evolution_stages) +
     #   ggplot2::aes(x = years, y = n, colour = lifestage, shape = lifestage) +
     #   geom_point(size = 4) +
@@ -313,31 +320,34 @@ viz_pop_evo <-
     #                               guide = "none") +
     #   ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
     #   ggplot2::theme_minimal()
-    
-    # only do it when black? 
+
+    # only do it when black?
     # ggplot2::ggplot(pop_evolution_stages) +
     #   ggplot2::aes(x = years, y = n, colour = lifestage, shape = lifestage) +
     #   geom_point(size = 4,colour="black") +
     #   ggplot2::geom_line(size = 1.25,colour="black")
-      
-    if(show_labels){
-      
+
+    if (show_labels) {
+
       # I don't know of a good spot to put the label annotation, so I've put it
       # about 75% in on the plot for now
       annotation <-
         pop_evolution_stages %>%
         group_by(lifestage) %>%
-        summarise(x75 = purrr::pluck(years, floor(0.75 * length(years))),
-                  y75 = purrr::pluck(value, floor(0.75 * length(value))))
-      
+        summarise(
+          x75 = purrr::pluck(years, floor(0.75 * length(years))),
+          y75 = purrr::pluck(value, floor(0.75 * length(value)))
+        )
+
       out_plot +
         ggplot2::geom_label(
           data = annotation,
           ggplot2::aes(x = x75, y = y75, label = lifestage),
           inherit.aes = FALSE
         )
-    } else {out_plot}
-    
+    } else {
+      out_plot
+    }
   }
 
 
@@ -347,14 +357,14 @@ viz_pop_evo <-
 # rlang::missing, but it's not a mature function, and this is base
 
 # from https://stackoverflow.com/a/38758257
-check_miss_arg <- function(a,b,c) {
+check_miss_arg <- function(a, b, c) {
   defined <- ls()
   passed <- names(as.list(match.call())[-1])
-  
+
   if (any(!defined %in% passed)) {
-    stop(paste("You must provide", paste(setdiff(defined, passed), collapse=", ")))
+    stop(paste("You must provide", paste(setdiff(defined, passed), collapse = ", ")))
   }
-  message(paste(a,b,c))
+  message(paste(a, b, c))
 }
 
 
@@ -384,10 +394,9 @@ check_user_entry <-
         return(rep(default_value, expected_number_of_values))
       }
     }
-    
+
     # if all is in order, return the input value as is
     return(value)
-    
   }
 
 return_cols <- function(input_df,
@@ -396,42 +405,49 @@ return_cols <- function(input_df,
                         colours = NULL,
                         n = NULL) {
   species_dynamics <-
-    dplyr::filter(input_df,
-                  species == selected_species,
-                  locality == selected_locality)
+    dplyr::filter(
+      input_df,
+      species == selected_species,
+      locality == selected_locality
+    )
   lifestages <- unique(species_dynamics$lifestage)
   number_of_lifestages <- length(lifestages)
-  
-  
+
+
   colours <-
-    check_user_entry(colours,
-                     "colours",
-                     number_of_lifestages,
-                     "lifestages",
-                     "#000000")
+    check_user_entry(
+      colours,
+      "colours",
+      number_of_lifestages,
+      "lifestages",
+      "#000000"
+    )
   n <-
-    check_user_entry(n,
-                     "number of individuals per lifestage",
-                     number_of_lifestages,
-                     "lifestages",
-                     100)
+    check_user_entry(
+      n,
+      "number of individuals per lifestage",
+      number_of_lifestages,
+      "lifestages",
+      100
+    )
   return(colours)
 }
 
 # function to check if the input data has all the necessary columns
 
-check_input_data_for_columns <- function(input_df){
-  required <- c("locality","species","lifestage","reproduction","survival")
+check_input_data_for_columns <- function(input_df) {
+  required <- c("locality", "species", "lifestage", "reproduction", "survival")
   missing_columns <- required[!required %in% names(input_df)]
   assertthat::assert_that(length(missing_columns) == 0,
-                          # msg = glue::glue("{paste(missing_columns,collapse = ', ')} ",
-                          #                  "{ifelse(length(missing_columns)>1,'are','is')}",
-                          #                  " missing from {deparse(substitute(input_df))}"))
-                          msg = glue::glue("{deparse(substitute(input_df))}",
-                                           " is missing ",
-                                           "{ifelse(length(missing_columns)>1,'some columns','a column')}",
-                                           ": {paste(missing_columns,collapse = ', ')}")
+    # msg = glue::glue("{paste(missing_columns,collapse = ', ')} ",
+    #                  "{ifelse(length(missing_columns)>1,'are','is')}",
+    #                  " missing from {deparse(substitute(input_df))}"))
+    msg = glue::glue(
+      "{deparse(substitute(input_df))}",
+      " is missing ",
+      "{ifelse(length(missing_columns)>1,'some columns','a column')}",
+      ": {paste(missing_columns,collapse = ', ')}"
+    )
   )
   return(glimpse(input_df))
 }
-
