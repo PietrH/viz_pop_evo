@@ -267,13 +267,31 @@ viz_pop_evo <-
 
 
     # if no n is provided, assume 100 individuals per lifestage
-    if (is.null(n)) {
-      n <- rep(100, nrow(pop_matrix))
-    }
-
-    if (is.null(colours)) {
-      colours <- rep("#000000", nrow(pop_matrix))
-    }
+    # if (is.null(n)) {
+    #   n <- rep(100, nrow(pop_matrix))
+    # }
+    # 
+    # if (is.null(colours)) {
+    #   colours <- rep("#000000", nrow(pop_matrix))
+    # }
+    
+    # set default colour and number of individuals
+    colours <-
+      check_user_entry(
+        colours,
+        "colours",
+        number_of_lifestages,
+        "lifestages",
+        "#000000"
+      )
+    n <-
+      check_user_entry(
+        n,
+        "number of individuals per lifestage",
+        number_of_lifestages,
+        "lifestages",
+        100
+      )
 
     # iterations starts counting from the starting position, so 10 iterations
     # would give you frames 0 to 9
