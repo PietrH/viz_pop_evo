@@ -307,13 +307,26 @@ viz_pop_evo <-
       ggplot2::ggplot(pop_evolution_stages) +
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
-      # ggplot2::scale_color_hue(direction = 1) +
-      ggplot2::scale_color_manual(values = 
-                           purrr::set_names(colours,
-                                            names(pop_evolution$stable.stage))) +
+      ggplot2::scale_color_manual(values = purrr::set_names(colours,lifestages)) +
       ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
       ggplot2::theme_minimal()
     
+# let's try to add point symbols to the lines to distinguish between lifestages
+    # ggplot2::ggplot(pop_evolution_stages) +
+    #   ggplot2::aes(x = years, y = n, colour = lifestage, shape = lifestage) +
+    #   geom_point(size = 4) +
+    #   ggplot2::geom_line(size = 1.25) +
+    #   ggplot2::scale_color_manual(values = purrr::set_names(colours,lifestages),
+    #                               guide = "none") +
+    #   ggplot2::labs(subtitle = sprintf("lambda = %.6g",pop_evolution$lambda)) +
+    #   ggplot2::theme_minimal()
+    
+    # only do it when black? 
+    # ggplot2::ggplot(pop_evolution_stages) +
+    #   ggplot2::aes(x = years, y = n, colour = lifestage, shape = lifestage) +
+    #   geom_point(size = 4,colour="black") +
+    #   ggplot2::geom_line(size = 1.25,colour="black")
+      
     if(show_labels){
       
       # I don't know of a good spot to put the label annotation, so I've put it
