@@ -47,14 +47,11 @@ Build a population matrix, project the evolution of the population, and
 visualise the results
 }
 \examples{
-```
-data <- data.table::fread(file.path("data", "pop_dyn.csv"))
-viz_pop_evo(data,
+viz_pop_evo(example_pop_dyn,
             "wild boar",
             "Flanders",
             colours = colstring_to_hex("cyan","yellow2","plum4"),
              show_labels = FALSE)
-```
 }
 \seealso{
 \code{\link[=colstring_to_hex]{colstring_to_hex()}} which can be used to convert built-in R colours

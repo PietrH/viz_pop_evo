@@ -23,9 +23,5 @@ Helper Function Fetch a survival value for a specific lifestage from a
 dynamic_species intermediary dataframe
 }
 \examples{
-
-data.table::fread(file.path("data", "pop_dyn.csv")) \%>\%
-dplyr::filter(species == "deer",
-locality == "Wallonia") \%>\%
-fetch_survival
+fetch_survival(dplyr::filter(example_pop_dyn,species == "deer",locality == "Wallonia"),"adult")
 }

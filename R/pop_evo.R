@@ -86,13 +86,10 @@
 #' , the survival value from
 #'
 #' @return one or more values of the same class as in the input dataframe
+#' @export
 #'
 #' @examples
-#'
-#' data.table::fread(file.path("data", "pop_dyn.csv")) %>%
-#' dplyr::filter(species == "deer",
-#' locality == "Wallonia") %>%
-#' fetch_survival
+#' fetch_survival(dplyr::filter(example_pop_dyn,species == "deer",locality == "Wallonia"),"adult")
 fetch_survival <- function(input_df, selected_lifestage) {
 
   input_df %>%
@@ -103,7 +100,7 @@ fetch_survival <- function(input_df, selected_lifestage) {
 # helper function to create the second to nth row of the projection/population
 # matrix, first row is fertility
 build_matrix_row <- function(input_df, selected_lifestage) {
-  lifestages <- pull(input_df, lifestage)
+  lifestages <- dplyr::pull(input_df, lifestage)
 
   # using seq_along instead of grep to force exact string matching, fixed = TRUE
   selected_lifestage_index <-
@@ -129,8 +126,8 @@ build_matrix_row <- function(input_df, selected_lifestage) {
 create_population_matrix <- function(species_dynamics, lifestages) {
   # force class to numeric (not integer) to avoid trouble with popbio
   c(
-    pull(species_dynamics, reproduction),
-    purrr::map(head(lifestages, -1),
+    dplyr::pull(species_dynamics, reproduction),
+    purrr::map(utils::head(lifestages, -1),
       build_matrix_row,
       input_df = species_dynamics
     )
@@ -144,9 +141,18 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 # visualisation as a function ---------------------------------------------
 
 # small function to turn known r color strings into hex codes
+#' Convert a built-in R colour string to a hex code string
+#'
+#' @param ... any built-in R colour strings such as \code{colours()}
+#'
+#' @return a character vector of equal length as the input, of corresponding hex colour codes
+#' @export
+#'
+#' @examples
+#' colstring_to_hex("red","yellow2","springgreen4")
 colstring_to_hex <-
   function(...) {
-    rgb(t(col2rgb(c(...))), max = 255)
+    grDevices::rgb(t(grDevices::col2rgb(c(...))), max = 255)
   }
 
 # helper function to check if a user entered the expected number of values, if not,
@@ -210,14 +216,12 @@ check_user_entry <-
 #'@export
 #'
 #' @examples
-#' ```
-#' data <- data.table::fread(file.path("data", "pop_dyn.csv"))
-#' viz_pop_evo(data,
+#' viz_pop_evo(example_pop_dyn,
 #'             "wild boar",
 #'             "Flanders",
 #'             colours = colstring_to_hex("cyan","yellow2","plum4"),
 #'              show_labels = FALSE)
-#' ```
+
 viz_pop_evo <-
   function(input_df,
            selected_species,
@@ -299,12 +303,12 @@ viz_pop_evo <-
     pop_evolution_stages <-
       pop_evolution %>%
       purrr::pluck("stage.vectors") %>%
-      as_tibble(rownames = "lifestage") %>%
+      tibble::as_tibble(rownames = "lifestage") %>%
       tidyr::pivot_longer(
-        cols = where(is.double),
+        cols = tidyselect:::where(is.double),
         names_to = "iteration"
       ) %>%
-      mutate(
+      dplyr::mutate(
         years = as.integer(iteration),
         n = value
       )

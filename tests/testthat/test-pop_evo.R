@@ -1,29 +1,26 @@
-test_that("fetch_survival can fetch a value", {
-  expect_identical(
-    data.table::fread(file.path("..","..","data", "pop_dyn.csv")) %>%
+test_that("fetch_survival can fetch a value",
+  {expect_identical({
+    data(example_pop_dyn)
+    example_pop_dyn %>%
       dplyr::filter(species == "deer",
                     locality == "Wallonia") %>%
-      fetch_survival(selected_lifestage = "adult"),
+      fetch_survival(selected_lifestage = "adult")},
     0.9
-  )
-})
+  )}
+)
 
 test_that("Error on missing arguments",
-  expect_error(
-    viz_pop_evo(data.table::fread(file.path("..","..","data", "pop_dyn.csv"))),
+  {expect_error({
+    data(example_pop_dyn)
+    viz_pop_evo(example_pop_dyn)},
 "The following arguments are required, but missing: selected_species, selected_locality",
 fixed = TRUE
-                 ))
+                 )})
 
 test_that("Error on missing columns",
-          expect_error({
-            input <- data.table::fread(
-              file.path("..",
-                        "..",
-                        "data",
-                        "pop_dyn.csv"),
-              select = c("locality","species","lifestage","survival")
-            )
+          {expect_error({
+            data(example_pop_dyn)
+            input <- dplyr::select(example_pop_dyn,-survival)
 
             viz_pop_evo(
               input_df = input,
@@ -36,16 +33,21 @@ test_that("Error on missing columns",
             )
           }
 
-          ))
+          )})
 
 
 test_that("Check if output plot is valid",{
-  input  <- data.table::fread(
-    file.path("..",
-              "..",
-              "data",
-              "pop_dyn.csv"))
-  plot <- viz_pop_evo(input, "wild boar","Sweden",c(100,200,20),years = 50,show_labels = T)
+  data(example_pop_dyn)
+  plot <-
+    viz_pop_evo(
+      example_pop_dyn,
+      "wild boar",
+      "Sweden",
+      c(100, 200, 20),
+      years = 50,
+      show_labels = T,
+      colours = colstring_to_hex("blue", "green", "red")
+    )
   expect_identical(purrr::pluck(plot,"labels","x"),"years")
   expect_identical(purrr::pluck(plot,"labels","y"),"n")
   expect_identical(purrr::pluck(plot, "labels", "label"),"lifestage")
