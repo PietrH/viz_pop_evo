@@ -33,6 +33,9 @@ viz_pop_evo(example_pop_dyn,
   show_labels = FALSE)
 
 ```
+Would result in the very stylish: 
+![image](https://user-images.githubusercontent.com/48065851/190928353-15b2288d-0903-4642-aead-0fbd25f68661.png)
+
 
 ## Test coverage
 ``` r
