@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-This package provides one main function: `vizpopevo()`, and a number of helpers. Currently the main function really does a bit much, it loads and filters the input data, transforms it to a population matrix, runs the model and returns a visualization of this model. It offers a number of defaults for optional arguments, and will warn you when required arguments are missing. It also checks the input dataframe. It offers a small amount of customizability in regards to the output plot, you can set the colours of the resulting curves, and you can turn curve labels on or off.
+This package provides one main function: `viz_pop_evo()`, and a number of helpers. Currently the main function really does a bit much, it loads and filters the input data, transforms it to a population matrix, runs the model and returns a visualization of this model. It offers a number of defaults for optional arguments, and will warn you when required arguments are missing. It also checks the input dataframe. It offers a small amount of customizability in regards to the output plot, you can set the colours of the resulting curves, and you can turn curve labels on or off.
 
 ## Installation
 
