@@ -297,6 +297,9 @@ viz_pop_evo <-
     
   }
 
+
+# helper functions to check for correct args ------------------------------
+
 # How to check for missing arguments in a function call, could also use
 # rlang::missing, but it's not a mature function, and this is base
 
