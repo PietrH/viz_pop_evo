@@ -35,5 +35,16 @@ viz_pop_evo(example_pop_dyn,
 ```
 
 ## Test coverage
+``` r
+> test_local()
+√ | F W S  OK | Context
+√ |        11 | pop_evo [0.1s]                                                            
 
-## 
+== Results ===============================================================================
+Duration: 0.1 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 11 ]
+> covr::package_coverage()
+vizpopevo Coverage: 100.00%
+R/pop_evo.R: 100.00%
+```
