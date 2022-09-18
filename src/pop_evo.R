@@ -21,7 +21,7 @@ input <-
     reproduction = c(0.59, 1.76, 2.29, 0.13, 0.56, 1.64, 0, 0, 0.95, 0.7),
     survival = c(0.52, 0.6, 0.71, 0.25, 0.31, 0.58, 0.45, 0.7, 0.9, 0.5)
   ) %>%
-  setDT()
+   setDT()
 
 # check number of different possible lifestages
 # data.table::uniqueN(input$lifestage)
@@ -314,32 +314,57 @@ check_miss_arg <- function(a,b,c) {
 
 # handle number of colours should match number of lifestages, but still be black
 # stock
+
+# function to check if a user entered the expected number of values, if not,
+# return a default value an expected amount of times
+check_user_entry <- function(value,expected_number_of_values,default_value) {
+  dplyr::case_when(
+    is.null(value) ~ {warning(glue::glue("No provided {deparse(substitute(value))},",
+                                         " defaulting to {default_value}"))
+      rep(default_value, expected_number_of_values)},
+    length(value) != expected_number_of_values ~ {warning(
+      glue::glue(
+        "Provided different number of ",
+        "{deparse(substitute(value))}: {length(value)} ",
+        "then the number of lifestages: {expected_number_of_values}",
+        "\n defaulting to {default_value}"
+        )
+    )
+      rep(default_value, expected_number_of_values)},
+    TRUE ~ value
+  )
+}
+
 return_cols <- function(input_df,
                         selected_species,
                         selected_locality,
-                        colours = NULL) {
+                        colours = NULL,
+                        n = NULL) {
   species_dynamics <-
     dplyr::filter(input_df,
                   species == selected_species,
                   locality == selected_locality)
-  number_of_lifestages <- length(unique(species_dynamics$lifestage))
+  lifestages <- unique(species_dynamics$lifestage)
+  number_of_lifestages <- length(lifestages)
   
   # TODO need to do this for n as well, wrap into function
-  if (is.null(colours)) {
-    warning("No provided colours, defaulting to black")
-    colours <- rep("#000000", number_of_lifestages)
-  } else {
-    if (length(colours) != number_of_lifestages) {
-      warning(
-        glue::glue(
-          "Provided different number of colours: {length(colours)} ",
-          "then the number of lifestages: {number_of_lifestages}"
-        )
-      )
-    }
-  }
+  # if (is.null(colours)) {
+  #   warning("No provided colours, defaulting to black")
+  #   colours <- rep("#000000", number_of_lifestages)
+  # } else {
+  #   if (length(colours) != number_of_lifestages) {
+  #     warning(
+  #       glue::glue(
+  #         "Provided different number of colours: {length(colours)} ",
+  #         "then the number of lifestages: {number_of_lifestages}"
+  #       )
+  #     )
+  #   }
+  # }
   
-  return(colours)
+  colours <- check_user_entry(colours,number_of_lifestages,"#000000")
+  n <- check_user_entry(n,number_of_lifestages,100)
+  return(list(n,colours))
 }
 
 # function to check if the input data has all the neccesairy columns
