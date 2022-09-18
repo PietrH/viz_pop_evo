@@ -3,11 +3,11 @@
 
 # load libraries ----------------------------------------------------------
 
-# library(data.table) # CRAN v1.14.2
-library(dplyr) # CRAN v1.0.7
-library(popbio) # CRAN v2.7
-library(ggplot2) # CRAN v3.3.5
-library(docstring)
+# # library(data.table) # CRAN v1.14.2
+# library(dplyr) # CRAN v1.0.7
+# library(popbio) # CRAN v2.7
+# library(ggplot2) # CRAN v3.3.5
+# library(docstring)
 
 # major purrr dependency, can soft data.table dependency
 
@@ -66,7 +66,7 @@ library(docstring)
 
 ## read csv in -------------------------------------------------------------
 
-input <- data.table::fread(file.path("data", "pop_dyn.csv"))
+# input <- data.table::fread(file.path("data", "pop_dyn.csv"))
 
 
 
@@ -76,26 +76,21 @@ input <- data.table::fread(file.path("data", "pop_dyn.csv"))
 # helper function to fetch a survival value for a specific lifestage from a
 # dynamic_species intermediary dataframe
 
-
+#' Helper Function Fetch a survival value for a specific lifestage from a
+#' dynamic_species intermediary dataframe
+#'
+#' @param input_df Input dataframe that contains at least the columns survival
+#'  and lifestage, ideally one that's been filtered already to a specific
+#'  species and location
+#' @param selected_lifestage The lifestage to get, actually \code{dplyr::pull}
+#' , the survival value from
+#'
+#' @return one or more values of the same class as in the input dataframe
+#' @export
+#'
+#' @examples
+#' fetch_survival(dplyr::filter(example_pop_dyn,species == "deer",locality == "Wallonia"),"adult")
 fetch_survival <- function(input_df, selected_lifestage) {
-
-  #' Helper Function Fetch a survival value for a specific lifestage from a
-  #' dynamic_species intermediary dataframe
-  #'
-  #' @param input_df Input dataframe that contains at least the columns survival
-  #'  and lifestage, ideally one that's been filtered already to a specific
-  #'  species and location
-  #' @param selected_lifestage The lifestage to get, actually \code{dplyr::pull}
-  #' , the survival value from
-  #'
-  #' @return one or more values of the same class as in the input dataframe
-  #'
-  #' @examples
-  #' 
-  #' data.table::fread(file.path("data", "pop_dyn.csv")) %>%
-  #' dplyr::filter(species == "deer",
-  #' locality == "Wallonia") %>% 
-  #' fetch_locality
 
   input_df %>%
     dplyr::filter(lifestage == selected_lifestage) %>%
@@ -105,7 +100,7 @@ fetch_survival <- function(input_df, selected_lifestage) {
 # helper function to create the second to nth row of the projection/population
 # matrix, first row is fertility
 build_matrix_row <- function(input_df, selected_lifestage) {
-  lifestages <- pull(input_df, lifestage)
+  lifestages <- dplyr::pull(input_df, lifestage)
 
   # using seq_along instead of grep to force exact string matching, fixed = TRUE
   selected_lifestage_index <-
@@ -131,8 +126,8 @@ build_matrix_row <- function(input_df, selected_lifestage) {
 create_population_matrix <- function(species_dynamics, lifestages) {
   # force class to numeric (not integer) to avoid trouble with popbio
   c(
-    pull(species_dynamics, reproduction),
-    purrr::map(head(lifestages, -1),
+    dplyr::pull(species_dynamics, reproduction),
+    purrr::map(utils::head(lifestages, -1),
       build_matrix_row,
       input_df = species_dynamics
     )
@@ -146,9 +141,18 @@ create_population_matrix <- function(species_dynamics, lifestages) {
 # visualisation as a function ---------------------------------------------
 
 # small function to turn known r color strings into hex codes
+#' Convert a built-in R colour string to a hex code string
+#'
+#' @param ... any built-in R colour strings such as \code{colours()}
+#'
+#' @return a character vector of equal length as the input, of corresponding hex colour codes
+#' @export
+#'
+#' @examples
+#' colstring_to_hex("red","yellow2","springgreen4")
 colstring_to_hex <-
   function(...) {
-    rgb(t(col2rgb(c(...))), max = 255)
+    grDevices::rgb(t(grDevices::col2rgb(c(...))), max = 255)
   }
 
 # helper function to check if a user entered the expected number of values, if not,
@@ -159,7 +163,7 @@ check_user_entry <-
            expected_number_of_values,
            expected_number_name,
            default_value) {
-    
+
     if (is.null(value)) {
       warning(glue::glue("No provided {value_name}, defaulting to {default_value}"),
               call. = FALSE)
@@ -185,6 +189,38 @@ check_user_entry <-
 # Main function, build the population matrix, calculate the population ---------
 # evolution, and plot it
 
+#'Build a population matrix, project the evolution of the population, and
+#'visualise the results
+#'
+#'@param input_df Input dataframe, with columns \code{locality}, \code{species}
+#'  , \code{lifestage}, \code{reproduction} and \code{survival}
+#'@param selected_species The species from the input_df for which the model
+#'  should be visualized
+#'@param selected_locality The locality for the species that should be
+#'  visualized
+#'@param n A vector of integers, specifying the number of individuals per
+#'  lifestage. If not provided, the function will default to 100 individuals for
+#'  every lifestage
+#'@param years The number of years the model should run for, really the number
+#'  of equally spaced points in time between the lifestages
+#'@param colours A character vector of hex codes of equal length to the number
+#'  of lifestages, these colours are used in the plot this function generates.
+#'@seealso [colstring_to_hex()] which can be used to convert built-in R colours
+#'  to hex codes. If no colours are provided (the default), the function will
+#'  return all resulting curves in black
+#'@param show_labels Either \code{TRUE} or \code{FALSE}, optionally show extra
+#'  labels on the output plot. This might be useful if no colours are provided
+#'
+#'@return a ggplot object that shows the projection of the population for
+#'  \code{years} steps
+#'@export
+#'
+#' @examples
+#' viz_pop_evo(example_pop_dyn,
+#'             "wild boar",
+#'             "Flanders",
+#'             colours = colstring_to_hex("cyan","yellow2","plum4"),
+#'              show_labels = FALSE)
 
 viz_pop_evo <-
   function(input_df,
@@ -194,42 +230,8 @@ viz_pop_evo <-
            years = 10,
            colours = NULL,
            show_labels = TRUE) {
-    
-    #'Build a population matrix, project the evolution of the population, and
-    #'visualise the results
-    #'
-    #'@param input_df Input dataframe, with columns \code{locality}, \code{species}
-    #'  , \code{lifestage}, \code{reproduction} and \code{survival}
-    #'@param selected_species The species from the input_df for which the model
-    #'  should be visualized
-    #'@param selected_locality The locality for the species that should be
-    #'  visualized
-    #'@param n A vector of integers, specifying the number of individuals per
-    #'  lifestage. If not provided, the function will default to 100 individuals for
-    #'  every lifestage
-    #'@param years The number of years the model should run for, really the number
-    #'  of equally spaced points in time between the lifestages
-    #'@param colours A character vector of hex codes of equal length to the number
-    #'  of lifestages, these colours are used in the plot this function generates.
-    #'@seealso [colstring_to_hex()] which can be used to convert built-in R colours
-    #'  to hex codes. If no colours are provided (the default), the function will
-    #'  return all resulting curves in black
-    #'@param show_labels Either \code{TRUE} or \code{FALSE}, optionally show extra
-    #'  labels on the output plot. This might be useful if no colours are provided
-    #'
-    #'@return a ggplot object that shows the projection of the population for
-    #'  \code{years} steps
-    #'@export
-    #'
-    #' @examples
-    #' ```
-    #' data <- data.table::fread(file.path("data", "pop_dyn.csv"))
-    #' viz_pop_evo(data,
-    #'             "wild boar",
-    #'             "Flanders",
-    #'             colours = colstring_to_hex("cyan","yellow2","plum4"),
-    #'              show_labels = FALSE)
-    #' ```
+
+
 
     # check if all necessary arguments have been provided
     req_arg <- c("input_df", "selected_species", "selected_locality")
@@ -301,12 +303,12 @@ viz_pop_evo <-
     pop_evolution_stages <-
       pop_evolution %>%
       purrr::pluck("stage.vectors") %>%
-      as_tibble(rownames = "lifestage") %>%
+      tibble::as_tibble(rownames = "lifestage") %>%
       tidyr::pivot_longer(
-        cols = where(is.double),
+        cols = tidyselect:::where(is.double),
         names_to = "iteration"
       ) %>%
-      mutate(
+      dplyr::mutate(
         years = as.integer(iteration),
         n = value
       )
