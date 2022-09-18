@@ -54,3 +54,37 @@ test_that("Check if output plot is valid", {
   expect_identical(purrr::pluck(plot, "labels", "label"), "lifestage")
   expect_true(grepl("lambda", purrr::pluck(plot, "labels", "subtitle")))
 })
+
+test_that("Check if we can turn the labels off", {
+  plot <-
+    viz_pop_evo(
+      example_pop_dyn,
+      "wild boar",
+      "Sweden",
+      c(100, 200, 20),
+      years = 50,
+      show_labels = FALSE,
+      colours = colstring_to_hex("blue", "green", "red")
+    )
+  expect_false("label" %in% names(purrr::pluck(plot,"labels")))
+})
+
+
+test_that("User entry should intercept and replace by default", {
+  expect_warning(check_user_entry(NULL,
+                                  "colour",
+                                  4,
+                                  "lifestages",
+                                  default_value = "#000000"))
+  expect_identical(suppressWarnings(
+    check_user_entry(NULL, "colour", 4, "lifestages", default_value = "#000000")
+  ),
+  rep("#000000", 4))
+  expect_warning(check_user_entry(rep("#CD3278", 3),
+                                  "colour",
+                                  4,
+                                  "lifestages",
+                                  default_value = "#000000"))
+
+})
+
