@@ -317,23 +317,32 @@ check_miss_arg <- function(a,b,c) {
 
 # function to check if a user entered the expected number of values, if not,
 # return a default value an expected amount of times
-check_user_entry <- function(value,expected_number_of_values,default_value) {
-  dplyr::case_when(
-    is.null(value) ~ {warning(glue::glue("No provided {deparse(substitute(value))},",
-                                         " defaulting to {default_value}"))
-      rep(default_value, expected_number_of_values)},
-    length(value) != expected_number_of_values ~ {warning(
-      glue::glue(
-        "Provided different number of ",
-        "{deparse(substitute(value))}: {length(value)} ",
-        "then the number of lifestages: {expected_number_of_values}",
-        "\n defaulting to {default_value}"
+check_user_entry <-
+  function(value,
+           value_name,
+           expected_number_of_values,
+           expected_number_name,
+           default_value) {
+    if (is.null(value)) {
+      warning("No provided {value_name}, defaulting to {default_value}")
+      return(rep(default_value, expected_number_of_values))
+    } else {
+      if (length(value) != expected_number_of_values) {
+        warning(
+          glue::glue(
+            "Provided different number of {value_name}: {length(value)} ",
+            "then the number of {expected_number_name}: {expected_number_of_values}",
+            " defaulting to {default_value}"
+          )
         )
-    )
-      rep(default_value, expected_number_of_values)},
-    TRUE ~ value
-  )
-}
+        return(rep(default_value, expected_number_of_values))
+      }
+    }
+    
+    # if all is in order, return the input value as is
+    return(value)
+    
+  }
 
 return_cols <- function(input_df,
                         selected_species,
@@ -347,27 +356,23 @@ return_cols <- function(input_df,
   lifestages <- unique(species_dynamics$lifestage)
   number_of_lifestages <- length(lifestages)
   
-  # TODO need to do this for n as well, wrap into function
-  # if (is.null(colours)) {
-  #   warning("No provided colours, defaulting to black")
-  #   colours <- rep("#000000", number_of_lifestages)
-  # } else {
-  #   if (length(colours) != number_of_lifestages) {
-  #     warning(
-  #       glue::glue(
-  #         "Provided different number of colours: {length(colours)} ",
-  #         "then the number of lifestages: {number_of_lifestages}"
-  #       )
-  #     )
-  #   }
-  # }
   
-  colours <- check_user_entry(colours,number_of_lifestages,"#000000")
-  n <- check_user_entry(n,number_of_lifestages,100)
-  return(list(n,colours))
+  colours <-
+    check_user_entry(colours,
+                     "colours",
+                     number_of_lifestages,
+                     "lifestages",
+                     "#000000")
+  n <-
+    check_user_entry(n,
+                     "number of individuals per lifestage",
+                     number_of_lifestages,
+                     "lifestages",
+                     100)
+  return(colours)
 }
 
-# function to check if the input data has all the neccesairy columns
+# function to check if the input data has all the necessary columns
 
 check_input_data_for_columns <- function(input_df){
   required <- c("locality","species","lifestage","reproduction","survival")
