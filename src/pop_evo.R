@@ -187,51 +187,51 @@ create_population_matrix <- function(input_df,selected_species,selected_locality
 # visualisation experimentation with labels ------------------------------------
 
 
-pop_evolution_stages <- 
-  pop_evolution %>%
-  purrr::pluck("stage.vectors") %>%
-  as_tibble(rownames = "lifestage") %>%
-  tidyr::pivot_longer(cols = where(is.double),
-                      names_to = "iteration") %>% 
-  mutate(years = as.integer(iteration))
-
-annotation <-
-  data.frame(
-    label = names(pop_evolution$stable.stage),
-    y = pull(filter(pop_evolution_stages,years == max(years)),value),
-    # x = years,
-    x = rep(11, 4)
-  )
-
-p <- ggplot(pop_evolution_stages) +
-  aes(x = years, y = value, colour = lifestage) +
-  geom_line(size = 1.25) +
-  # geom_line(size = 1.25, aes(linetype = lifestage)) +
-  scale_color_hue(direction = 1) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-  
-
-# NOTE possibly better off using ggplot2::annotation_custom
-p +
-  geom_label(data = annotation,
-             ggplot2::aes(x = x, y = y, label = label),
-             inherit.aes = FALSE) +
-  # coord_cartesian(xlim = c(0,years), clip = "off") +
-  coord_cartesian(xlim = c(0,10), clip = "on")
-
-p + geom_label(data = annotation, ggplot2::aes(x = 10, y = y, label = label),
-              inherit.aes = FALSE, hjust = 0.5, nudge_x = 1) +
-  coord_cartesian(xlim = c(0,10), clip = "on") +
-  theme(plot.margin = unit(c(0,11,0,0),"char"))
-        # theme(plot.margin = unit(c(0,0,0,max(nchar(lifestages))+2),"char")
-
-# example with just annotate
-p + annotate("text", x=10, y=annotation$y, label = annotation$label)
-
-# putting label texts on top of the plots 
-p + geom_label(data = annotation, ggplot2::aes(x = 7, y =  pull(filter(pop_evolution_stages,years == 7),value), label = label),
-               inherit.aes = FALSE, hjust = 0, position = position_dodge(width = 3))
+# pop_evolution_stages <- 
+#   pop_evolution %>%
+#   purrr::pluck("stage.vectors") %>%
+#   as_tibble(rownames = "lifestage") %>%
+#   tidyr::pivot_longer(cols = where(is.double),
+#                       names_to = "iteration") %>% 
+#   mutate(years = as.integer(iteration))
+# 
+# annotation <-
+#   data.frame(
+#     label = names(pop_evolution$stable.stage),
+#     y = pull(filter(pop_evolution_stages,years == max(years)),value),
+#     # x = years,
+#     x = rep(11, 4)
+#   )
+# 
+# p <- ggplot(pop_evolution_stages) +
+#   aes(x = years, y = value, colour = lifestage) +
+#   geom_line(size = 1.25) +
+#   # geom_line(size = 1.25, aes(linetype = lifestage)) +
+#   scale_color_hue(direction = 1) +
+#   theme_minimal() +
+#   theme(legend.position = "bottom")
+#   
+# 
+# # NOTE possibly better off using ggplot2::annotation_custom
+# p +
+#   geom_label(data = annotation,
+#              ggplot2::aes(x = x, y = y, label = label),
+#              inherit.aes = FALSE) +
+#   # coord_cartesian(xlim = c(0,years), clip = "off") +
+#   coord_cartesian(xlim = c(0,10), clip = "on")
+# 
+# p + geom_label(data = annotation, ggplot2::aes(x = 10, y = y, label = label),
+#               inherit.aes = FALSE, hjust = 0.5, nudge_x = 1) +
+#   coord_cartesian(xlim = c(0,10), clip = "on") +
+#   theme(plot.margin = unit(c(0,11,0,0),"char"))
+#         # theme(plot.margin = unit(c(0,0,0,max(nchar(lifestages))+2),"char")
+# 
+# # example with just annotate
+# p + annotate("text", x=10, y=annotation$y, label = annotation$label)
+# 
+# # putting label texts on top of the plots 
+# p + geom_label(data = annotation, ggplot2::aes(x = 7, y =  pull(filter(pop_evolution_stages,years == 7),value), label = label),
+#                inherit.aes = FALSE, hjust = 0, position = position_dodge(width = 3))
 # visualisation as a function ---------------------------------------------
 
 # small function to turn known r color strings into hex codes
