@@ -148,20 +148,23 @@ build_matrix_row <- function(input_df, selected_lifestage) {
 
 # function to create the whole matrix in a single go
 
-create_population_matrix <- function(input_df,selected_species,selected_locality){
-  
-  species_dynamics <-
-    dplyr::filter(input_df,species == selected_species,locality == selected_locality)
-  lifestages <- pull(species_dynamics,lifestage)
 
-# head(lifestages,-1)
-# force class to numeric (not integer) to allow for 
-  c(pull(species_dynamics,reproduction),
+
+create_population_matrix <- function(species_dynamics, lifestages) {
+  # species_dynamics <-
+  #   dplyr::filter(input_df,species == selected_species,locality == selected_locality)
+  # lifestages <- pull(species_dynamics,lifestage)
+  
+  # head(lifestages,-1)
+  # force class to numeric (not integer) to allow for
+  c(
+    pull(species_dynamics, reproduction),
     purrr::map(lifestages[1:length(lifestages) - 1],
                build_matrix_row,
-               input_df = species_dynamics)) %>%
+               input_df = species_dynamics)
+  ) %>%
     purrr::flatten() %>%
-    as.numeric() %>% 
+    as.numeric() %>%
     matrix2(lifestages)
   
 }
@@ -257,19 +260,14 @@ viz_pop_evo <-
       dplyr::filter(input_df,
                     species == selected_species,
                     locality == selected_locality)
-    
-    # TODO make create_population_matrix accept species_dynamics instead of
-    # input_df
-    
-    pop_matrix <-
-      create_population_matrix(input_df,
-                               selected_species,
-                               selected_locality)
-    
     # extract the different values for lifestages, they are assumed to be
     # arranged from young to old, then count them.
     lifestages <- unique(species_dynamics$lifestage)
     number_of_lifestages <- length(lifestages)
+    
+    pop_matrix <- create_population_matrix(species_dynamics,lifestages)
+    
+    
     
     # if no n is provided, assume 100 individuals per lifestage
     if (is.null(n)) {
