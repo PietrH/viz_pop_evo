@@ -32,7 +32,7 @@ test_that("Error on missing columns", {
       n = c(10, 20, 10),
       years = 5,
       colours = colstring_to_hex("blue", "green", "red"),
-      show_labels = F
+      show_labels = FALSE
     )
   })
 })
@@ -46,7 +46,7 @@ test_that("Check if output plot is valid", {
       "Sweden",
       c(100, 200, 20),
       years = 50,
-      show_labels = T,
+      show_labels = TRUE,
       colours = colstring_to_hex("blue", "green", "red")
     )
   expect_identical(purrr::pluck(plot, "labels", "x"), "years")

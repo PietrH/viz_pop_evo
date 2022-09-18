@@ -1,75 +1,3 @@
-# From input csv, create a population matrix, calculates population demoraphic
-# evolution, and returns a line graph
-
-# load libraries ----------------------------------------------------------
-
-# # library(data.table) # CRAN v1.14.2
-# library(dplyr) # CRAN v1.0.7
-# library(popbio) # CRAN v2.7
-# library(ggplot2) # CRAN v3.3.5
-# library(docstring)
-
-# major purrr dependency, can soft data.table dependency
-
-# load input data ---------------------------------------------------------
-
-
-# input <-
-#   tibble(
-#     locality = c(
-#       "Flanders",
-#       "Flanders",
-#       "Flanders",
-#       "Sweden",
-#       "Sweden",
-#       "Sweden",
-#       "Wallonia",
-#       "Wallonia",
-#       "Wallonia",
-#       "Wallonia"
-#     ),
-#     species = c(
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "wild boar",
-#       "deer",
-#       "deer",
-#       "deer",
-#       "deer"
-#     ),
-#     lifestage = c(
-#       "juvenile",
-#       "subadult",
-#       "adult",
-#       "juvenile",
-#       "subadult",
-#       "adult",
-#       "juvenile",
-#       "subadult",
-#       "adult",
-#       "senescent"
-#     ),
-#     reproduction = c(0.59, 1.76, 2.29, 0.13, 0.56, 1.64, 0, 0, 0.95, 0.7),
-#     survival = c(0.52, 0.6, 0.71, 0.25, 0.31, 0.58, 0.45, 0.7, 0.9, 0.5)
-#   )
-
-# check number of different possible lifestages
-# data.table::uniqueN(input$lifestage)
-
-## write csv out -----------------------------------------------------------
-
-# data.table::fwrite(input, file.path("data", "pop_dyn.csv"), sep = ";")
-
-
-## read csv in -------------------------------------------------------------
-
-# input <- data.table::fread(file.path("data", "pop_dyn.csv"))
-
-
-
 # helper functions --------------------------------------------------------
 
 
@@ -80,10 +8,10 @@
 #' dynamic_species intermediary dataframe
 #'
 #' @param input_df Input dataframe that contains at least the columns survival
-#'  and lifestage, ideally one that's been filtered already to a specific
-#'  species and location
-#' @param selected_lifestage The lifestage to get, actually \code{dplyr::pull}
-#' , the survival value from
+#'   and lifestage, ideally one that's been filtered already to a specific
+#'   species and location
+#' @param selected_lifestage The lifestage to get, actually \code{dplyr::pull} ,
+#'   the survival value from
 #'
 #' @return one or more values of the same class as in the input dataframe
 #' @export
@@ -154,8 +82,8 @@ colstring_to_hex <-
     grDevices::rgb(t(grDevices::col2rgb(c(...))), max = 255)
   }
 
-# helper function to check if a user entered the expected number of values, if not,
-# return a default value an expected amount of times
+# helper function to check if a user entered the expected number of values, if
+# not, return a default value an expected amount of times
 check_user_entry <-
   function(value,
            value_name,
@@ -163,7 +91,8 @@ check_user_entry <-
            expected_number_name,
            default_value) {
     if (is.null(value)) {
-      warning(glue::glue("No provided {value_name}, defaulting to {default_value}"),
+      warning(
+        glue::glue("No provided {value_name}, defaulting to {default_value}"),
         call. = FALSE
       )
       return(rep(default_value, expected_number_of_values))
@@ -172,7 +101,8 @@ check_user_entry <-
         warning(
           glue::glue(
             "Provided different number of {value_name}: {length(value)} ",
-            "then the number of {expected_number_name}: {expected_number_of_values}",
+            "then the number of {expected_number_name}: ",
+            "{expected_number_of_values}",
             " defaulting to {default_value}"
           ),
           call. = FALSE
@@ -316,7 +246,8 @@ viz_pop_evo <-
       ggplot2::ggplot(pop_evolution_stages) +
       ggplot2::aes(x = years, y = n, colour = lifestage) +
       ggplot2::geom_line(size = 1.25) +
-      ggplot2::scale_color_manual(values = purrr::set_names(colours, lifestages)) +
+      ggplot2::scale_color_manual(
+        values = purrr::set_names(colours, lifestages)) +
       ggplot2::ggtitle(
         glue::glue(
           "Projection of the {selected_species}",
